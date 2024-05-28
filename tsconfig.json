@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "types": ["node", "jest"],
+    "declarationDir": "dist/types",
+    "noEmit": true,
+  },
+  "include": ["rollup.config.ts"],
+  "exclude": ["__tests__/**/*.test.ts"]
+}
