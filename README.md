@@ -72,7 +72,7 @@ After the transformation it will become like this:
 .title_116zl1d3:hover { color: red; }
 
 .fade-in_116zl1d3 {
-	animation: 3s linear fadeIn_116zl1d3, 3s ease-out 5s moveIn_116zl1d3;
+  animation: 3s linear fadeIn_116zl1d3, 3s ease-out 5s moveIn_116zl1d3;
 }
 
 @keyframes fadeIn_116zl1d3 { opacity: 1; }
@@ -108,7 +108,7 @@ After the transformation it will become like this:
 .title:hover { color: red; }
 
 .fade-in_116zl1d3 {
-	animation: 3s linear fadeIn, 3s ease-out 5s moveIn_116zl1d3;
+  animation: 3s linear fadeIn, 3s ease-out 5s moveIn_116zl1d3;
 }
 
 @keyframes fadeIn { opacity: 1; }
@@ -130,14 +130,14 @@ use the `getModules` callback. For example, save data about classes into a corre
 
 ```js
 postcss([
-	require("postcss-utility-modules")({
-		getModules: function (filePath, modules) {
-			var path = require("path");
-			var cssName = path.basename(filePath, ".css");
-			var jsonFileName = path.resolve("./build/" + cssName + ".json");
-			fs.writeFileSync(jsonFileName, JSON.stringify(modules));
-		},
-	}),
+  require("postcss-utility-modules")({
+    getModules: function (filePath, modules) {
+      var path = require("path");
+      var cssName = path.basename(filePath, ".css");
+      var jsonFileName = path.resolve("./build/" + cssName + ".json");
+      fs.writeFileSync(jsonFileName, JSON.stringify(modules));
+    },
+  }),
 ]);
 ```
 
@@ -178,7 +178,7 @@ If the original don't contains any other property and any other selector, the cl
 ```css
 /* CSS source */
 .class1 {
-	animation: 3s linear animationName;
+  animation: 3s linear animationName;
 }
 ```
 ```js
@@ -195,8 +195,8 @@ With nested selectors:
 ```css
 /* CSS source */
 .class1 {
-	animation: 3s linear animationName;
-	div { margin: 0; }
+  animation: 3s linear animationName;
+  div { margin: 0; }
 }
 ```
 ```js
@@ -208,7 +208,7 @@ With nested selectors:
 ```css
 /* CSS result */
 .class1 {
-	div { margin: 0; }
+  div { margin: 0; }
 }
 .animation[_3s_linear_animationName] { animation: 3s linear animationName; }
 ```
@@ -224,17 +224,17 @@ is possible use in combination the `getUtilityModules` and `output` options for 
 ```js
 // Options
 {
-	utility: {
-		getUtilityModules(filePath, modules) { /** your logic */},
-		output: false,
-	}
+  utility: {
+    getUtilityModules(filePath, modules) { /** your logic */},
+    output: false,
+  }
 }
 ```
 ```css
 /* CSS source */
 .class1 {
-	animation: 3s linear animationName;
-	div { margin: 0; }
+  animation: 3s linear animationName;
+  div { margin: 0; }
 }
 ```
 ```js
@@ -252,7 +252,7 @@ is possible use in combination the `getUtilityModules` and `output` options for 
 ```css
 /* CSS result */
 .class1 {
-	div { margin: 0; }
+  div { margin: 0; }
 }
 ```
 ### Utility class names mode
