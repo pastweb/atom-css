@@ -11,11 +11,11 @@ const processCSS = async (input: string, opts: Options = {}) => {
   return result.css;
 };
 
-describe('postcss-utility-modules', () => {
+describe('postcss-utility-modules - modules', () => {
   it('should add suffixes to class names', async () => {
-    const input = '.example { color: red; }';
+    const input = '.example { color: red; }\n.example:hover { color: blue; }';
     const ID = getScope(input);
-    const expectedOutput = `.example${ID} { color: red; }`;
+    const expectedOutput = `.example${ID} { color: red; }\n.example${ID}:hover { color: blue; }`;
     
     const output = await processCSS(input, { modules: true });
 
@@ -77,55 +77,6 @@ describe('postcss-utility-modules', () => {
     
     const output = await processCSS(input, { modules: true });
 
-    expect(output).toBe(expectedOutput);
-  });
-
-  it('should add suffixes to CSS variables in :root', async () => {
-    const input = `
-      :root {
-        --color: red;
-      }
-      .example {
-        color: var(--color);
-      }
-    `;
-    
-    const CLASS_ID = getScope(input);
-    const VARS_ID = getScope('/');
-    
-    const expectedOutput = `
-      :root {
-        --color${VARS_ID}: red;
-      }
-      .example${CLASS_ID} {
-        color: var(--color${VARS_ID});
-      }
-    `;
-
-    const output = await processCSS(input, {
-      modules: true,
-      scopedCSSVariables: true,
-      getModules: (filePath, modules) => {},
-    });
-    expect(output).toBe(expectedOutput);
-  });
-
-  it('should generate utilies correctly', async () => {
-    const input = `.class1 {
-  color: red;
-  .class2 { color: blue; }
-}`;
-
-    const expectedOutput = `.color[red] {
-  color: red
-}
-.color[blue] { color: blue
-}`;
-    
-    const output = await processCSS(input, {
-      utility: { className: 'readable' },
-    });
-    
     expect(output).toBe(expectedOutput);
   });
 });
