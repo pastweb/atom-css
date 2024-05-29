@@ -5,10 +5,10 @@ export function getUtilityClassName(mode: string, prop: string, value: string): 
 
   switch(mode) {
     case 'readable':
-      className = `${prop}${value.split(' ').map(val => `[${val}]`).join('')}`;
+      className = `${prop}${`[_${value.replace(/( +(,|\.)?)|((,|\.)? +)/g, '_')}]`}`;
     break;
     case 'semireadable':
-      className = `${prop}[${generateHash(8, value)}]`;
+      className = `${prop}[_${generateHash(8, value)}]`;
     break;
     case 'coded':
       className = `_${generateHash(8, prop, value)}`;
