@@ -13,7 +13,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
   return {
     postcssPlugin: 'postcss-utility-modules',
     // The Once method is called once for the root node at the end of the processing
-    Once(root, { result }) {
+    async Once(root, { result }) {
       const filePath = result.opts.from || 'unknown';
       const css = root.toString();
       // Object to store original class names and their suffixed names (modules)
@@ -36,7 +36,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             if (!decl.prop.startsWith('--')) return;
             
             const originalProp = decl.prop;
-            const suffixedProp = `${originalProp}${getScope(opts.baseUrl)}`;
+            const suffixedProp = `${originalProp}${getScope(opts.scopedCSSVariables)}`;
             cssVarModules[originalProp] = suffixedProp;
             decl.prop = suffixedProp;
           });
@@ -94,7 +94,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
 
           // Process utility classes
           if (opts.utility) {
-            const mode = (opts.utility as ResolvedUtilityOptions).className;
+            const { mode } = (opts.utility as ResolvedUtilityOptions);
 
             root.walkRules(rule => {
               if (!rule.selector.startsWith('.')) return;
@@ -127,7 +127,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         atRule.params = keyframes[originalName];
       });
 
-      opts.getModules(filePath, modules);
+      await opts.getModules(filePath, modules);
 
       if (opts.utility) {
         const utility = opts.utility as ResolvedUtilityOptions;
@@ -135,7 +135,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         
         if (utility.getUtilityModules) {
           const uModules = Object.entries(utilityModules).reduce((acc, [className, rule]) => ({ ...acc, [className]: rule.toString() }), {});
-          utility.getUtilityModules(filePath, uModules);
+          await utility.getUtilityModules(filePath, uModules);
         }
       }
     },
