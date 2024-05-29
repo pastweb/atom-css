@@ -24,6 +24,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       const cssVarModules: Record<string, string> = {};
       // Object to store utility class name and its own css
       const utilityModules: Record<string, Rule> = {};
+      // Set of classNames already processed for the utility functionality
+      const processedClasses: Set<string> = new Set();
 
       if (!opts.modules && opts.scopedCSSVariables && opts.utility) return;
       // Generate a unique suffix for this file
@@ -100,6 +102,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
               if (!rule.selector.startsWith('.')) return;
 
               const { unscoped } = extractClassName(rule.selector);
+
+              if (processedClasses.has(unscoped)) return;
               
               rule.each(node => {
                 if (node.type !== 'decl') return;
@@ -114,6 +118,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
                 modules[unscoped] = modules[unscoped] ? `${modules[unscoped]} ${utilityClassName}` : utilityClassName;
               });
 
+              processedClasses.add(unscoped);
               removeClassIfEmpty(rule, modules);
             });
           }

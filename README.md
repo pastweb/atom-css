@@ -7,9 +7,12 @@ for handle CSS modules, scoped CSS variables and utilities.
 [tailwind]: https://github.com/tailwindlabs/tailwindcss
 
 ## Motivation
-Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read.
+Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read, also, the use of a tool like Tailwind needs a specific plugin for the bundle tool used and the front end framework as it reads the jacascript code to optimise the CSS footprint.
 This plugin try to bring the same idea reducing the CSS footprint using CSS utilities but calculted on the fly reading a standard
 CSS source code, and orgenise the class utilities in the CSS Module Object even keeping most of the CSS Modules functionalities.
+This approach keep the unctionalities agnostic in terms of the Front end framework used putting in the center just the CSS standard.
+Of course there are little considerations to make in order to write the your own CSS in for an optimised CSS output related to your specific case, but nothing too crazy if you are already familiar on the use of CSS Modules and any CSS Preprocessr.
+With Utility Modules you are the framework rock star 🤘😎🤘.
 
 ## install
 ```bash
@@ -260,3 +263,66 @@ In order to support a better DX and optimise teh CSS footprint, there are 3 diff
 - `readable`: the utility className will folow the syntax `property-name[_value]`, where the value is the CSS property value string with the replacement for any space, comma or dot using a single `-` as in the example above.
 - `semireadable`: the className syntax will be `property-name[_116zl1d3]`, where the hash code will be calculated using the property value as key.
 - `coded`: the className syntax will be `_a26fl1d4`, where the hash code will be calculated using the property name and value as key.
+
+### Processed classNames
+Of course we can expect a CSS class to be reused and modified for a specific selector. In this case the calss already processed will be not modified any specific selector as example:
+```css
+/* CSS source */
+.panel {
+	background-color: white;
+
+	.panel-box {
+		padding: 1em;
+		font-size: 1em;
+	}
+
+	.panel-header {
+		background-color: grey;
+
+		.panel-box { padding: 0.5em; }
+	}
+  
+  .panel-footer {
+		background-color: lightgrey;
+
+		.panel-box { padding: 0.3em; }
+	}
+}
+```
+```js
+// CSS module
+{
+  'panel': 'panel background-color[_white]',
+	'panel-box': 'padding[_1em] font-size[_1em]',
+	'panel-header': 'panel-header background-color[_grey]',
+	'panel-footer': 'panel-footer background-color[_lightgrey]'
+}
+```
+```js
+// CSS utility module
+{
+  'background-color[_white]': '.background-color[_white] { background-color: white; }',
+	'padding[_1em]': '.padding[_1em] { padding: 1em; }',
+	'font-size[_1em]': '.font-size[_1em] { font-size: 1em; }',
+	'background-color[_grey]': '.background-color[_grey] { background-color: grey; }',
+	'background-color[_lightgrey]': '.background-color[_lightgrey] { background-color: lightgrey; }'
+}
+```
+```css
+/* CSS result */
+.panel {
+	.panel-header {
+		.panel-box { padding: 0.5em; }
+	}
+  
+  .panel-footer {
+		.panel-box { padding: 0.3em; }
+	}
+}
+
+.background-color[_white] { background-color: white; }
+.padding[_1em] { padding: 1em; }
+.font-size[_1em] { font-size: 1em; }
+.background-color[_grey] { background-color: grey; }
+.background-color[_lightgrey] { background-color: lightgrey; }
+```
