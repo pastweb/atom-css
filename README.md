@@ -22,13 +22,13 @@ npm i -D postcss-utility-modules
 ## Usage
 ```ts
 import postcss from 'postcss';
-import utilityModules, { Options } from 'postcss-utility-modules';
+import { postcssUtlityModules }, { Options } from 'postcss-utility-modules';
 
 const fileName = 'my/file/name.css';
 const cssInput = '...any css code here';
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([ utilityModules(opts) ]).process(input, { from: fileName });
+  const result = await postcss([ postcssUtlityModules(opts) ]).process(input, { from: fileName });
   return result.css;
 };
 
@@ -132,8 +132,10 @@ But you have a freedom to make everything you want with exported classes, just
 use the `getModules` callback. For example, save data about classes into a corresponding JSON file:
 
 ```js
+import { postcssUtlityModules } from 'postcss-utility-modules';
+...
 postcss([
-  require("postcss-utility-modules")({
+  postcssUtlityModules({
     getModules: function (filePath, modules) {
       var path = require("path");
       var cssName = path.basename(filePath, ".css");
@@ -265,7 +267,7 @@ In order to support a better DX and optimise teh CSS footprint, there are 3 diff
 - `coded`: the className syntax will be `_a26fl1d4`, where the hash code will be calculated using the property name and value as key.
 
 ### Processed classNames
-Of course we can expect a CSS class to be reused and modified for a specific selector. In this case the calss already processed will be not modified any specific selector as example:
+Of course we can expect a CSS class to be reused and modified for a specific selector. In this case the only the calss with the less specific selector will be processed as example:
 ```css
 /* CSS source */
 .panel {

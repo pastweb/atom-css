@@ -3,5 +3,5 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest',
   },
   testEnvironment: 'node',
-  testMatch: ['**/__tests__/**/*.test.ts'],
+  testMatch: [ '**/__tests__/**/*.include.test.ts' ],
 };

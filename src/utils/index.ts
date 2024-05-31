@@ -1,5 +1,4 @@
-export { extractClassName } from './extractClassName';
 export { generateHash } from './generateHash';
-export { getUtilityClassName } from './getUtilityClassName';
-export { removeClassIfEmpty } from './removeClassIfEmpty';
 export { resolveOptions } from './resolveOptions';
+export { processRule } from './processRule';
+export { countAncestors } from './countAncestors';

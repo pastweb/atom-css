@@ -5,7 +5,7 @@ export function getUtilityClassName(mode: string, prop: string, value: string): 
 
   switch(mode) {
     case 'readable':
-      className = `${prop}${`[_${value.replace(/( +(,|\.)?)|((,|\.)? +)/g, '_')}]`}`;
+      className = `${prop}${`[_${value.replace(/( +(,|\.|[()])?)|((,|\.|[()])? +)/g, '_')}]`}`;
     break;
     case 'semireadable':
       className = `${prop}[_${generateHash(8, value)}]`;

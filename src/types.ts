@@ -10,6 +10,12 @@ export interface Options {
   getModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };
 
+export interface UtilityOptions {
+  mode?: 'readable' | 'semireadable' | 'coded';
+  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void;
+  output?: boolean;
+};
+
 export interface ResolvedUtilityOptions {
   mode: 'readable' | 'semireadable' | 'coded';
   getUtilityModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;

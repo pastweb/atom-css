@@ -1,7 +1,6 @@
-import { resolveOptions, generateHash, getUtilityClassName, removeClassIfEmpty, extractClassName } from './utils';
+import { resolveOptions, generateHash, countAncestors, processRule } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
-import * as postcss from 'postcss';
-import type { PluginCreator, Rule, Declaration } from 'postcss';
+import type { PluginCreator, Rule } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
 
 // Create the plugin
@@ -25,7 +24,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       // Object to store utility class name and its own css
       const utilityModules: Record<string, Rule> = {};
       // Set of classNames already processed for the utility functionality
-      const processedClasses: Set<string> = new Set();
+      // const processedClasses: Set<string> = new Set();
+      const rules: Record<string, { ancestors: number, rule: Rule}[]> = {};
 
       if (!opts.modules && opts.scopedCSSVariables && opts.utility) return;
       // Generate a unique suffix for this file
@@ -94,53 +94,48 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             );
           }
 
-          // Process utility classes
+          // store rules must be processed for utility
           if (opts.utility) {
-            const { mode } = (opts.utility as ResolvedUtilityOptions);
-
-            root.walkRules(rule => {
-              if (!rule.selector.startsWith('.')) return;
-
-              const { unscoped } = extractClassName(rule.selector);
-
-              if (processedClasses.has(unscoped)) return;
-              
-              rule.each(node => {
-                if (node.type !== 'decl') return;
-
-                const decl = node as Declaration;
-                const { prop, value } = decl;
-                const utilityClassName = getUtilityClassName(mode, prop, value);
-                const utilityRule = postcss.rule({ selector: `.${utilityClassName}` });
-                utilityRule.append(decl.clone());
-                decl.remove(); // Remove the processed declaration from the original rule
-                if (!utilityModules[utilityClassName]) utilityModules[utilityClassName] = utilityRule;
-                modules[unscoped] = modules[unscoped] ? `${modules[unscoped]} ${utilityClassName}` : utilityClassName;
-              });
-
-              processedClasses.add(unscoped);
-              removeClassIfEmpty(rule, modules);
-            });
+            if (!rule.selector.startsWith('.')) return;
+            
+            rules[rule.selector] = rules[rule.selector] || [];
+            rules[rule.selector].push({ ancestors: countAncestors(rule), rule });
           }
         }
       });
 
-      // Apply suffixed names to keyframes rules
-      root.walkAtRules('keyframes', atRule => {
-        const originalName = atRule.params;
-        if (!keyframes[originalName]) return;
-        atRule.params = keyframes[originalName];
-      });
+      if (opts.modules || opts.utility) {
+        // Apply suffixed names to keyframes rules
+        if (Object.keys(keyframes).length) {
+          root.walkAtRules('keyframes', atRule => {
+            const originalName = atRule.params;
+            if (!keyframes[originalName]) return;
+            atRule.params = keyframes[originalName];
+          });
+        }
 
-      await opts.getModules(filePath, modules);
+        await opts.getModules(filePath, modules);
+      }
 
       if (opts.utility) {
         const utility = opts.utility as ResolvedUtilityOptions;
-        if (utility.output) Object.values(utilityModules).forEach(rule => root.append(rule));
+        const { mode, output, getUtilityModules } = utility;
+
+        // Process rules
+        Object.values(rules).forEach(ruleArr => {
+          const sorted = ruleArr.sort((a, b) => a.ancestors - b.ancestors);
+          const lower = sorted[0].ancestors;
+          
+          sorted.filter(a => a.ancestors === lower)
+            .reduce((acc, { rule }) => [ ...acc, rule], [] as Rule[])
+            .forEach(rule => processRule(rule, mode, modules, utilityModules));
+        });
         
-        if (utility.getUtilityModules) {
+        if (output) Object.values(utilityModules).forEach(rule => root.append(rule));
+        
+        if (getUtilityModules) {
           const uModules = Object.entries(utilityModules).reduce((acc, [className, rule]) => ({ ...acc, [className]: rule.toString() }), {});
-          await utility.getUtilityModules(filePath, uModules);
+          await getUtilityModules(filePath, uModules);
         }
       }
     },
