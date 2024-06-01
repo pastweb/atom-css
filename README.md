@@ -328,3 +328,4 @@ Of course we can expect a CSS class to be reused and modified for a specific sel
 .background-color[_grey] { background-color: grey; }
 .background-color[_lightgrey] { background-color: lightgrey; }
 ```
+Duplicated Properties for the same className at the same levell will be overwritten.

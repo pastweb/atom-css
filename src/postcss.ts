@@ -1,4 +1,4 @@
-import { resolveOptions, generateHash, countAncestors, processRule } from './utils';
+import { resolveOptions, generateHash, countAncestors, processRules } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
 import type { PluginCreator, Rule } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
@@ -43,8 +43,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             decl.prop = suffixedProp;
           });
         } else {
-          
           const scopedVars = opts.scopedCSSVariables && Object.keys(cssVarModules).length;
+
           if (opts.modules || scopedVars) {
             rule.walkDecls(decl => {
               if (decl.prop === 'animation' || decl.prop === 'animation-name') {
@@ -104,6 +104,32 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         }
       });
 
+      if (opts.utility) {
+        const utility = opts.utility as ResolvedUtilityOptions;
+        const { mode, output, getUtilityModules } = utility;
+
+        // Process rules from the deepest
+        for (const selector of Object.keys(rules).reverse()) {
+          const sorted = rules[selector].sort((a, b) => a.ancestors - b.ancestors);
+          const [ lower ] = sorted;
+          const selected: Rule[] = [];
+          
+          for (const { ancestors, rule } of sorted) {
+            if (ancestors > lower.ancestors) break;
+            selected.push(rule);
+          }
+
+          processRules(lower.rule.selector, selected, mode, modules, utilityModules);
+        }
+        
+        if (output) Object.values(utilityModules).forEach(rule => root.append(rule));
+        
+        if (getUtilityModules) {
+          const uModules = Object.entries(utilityModules).reduce((acc, [className, rule]) => ({ ...acc, [className]: rule.toString() }), {});
+          await getUtilityModules(filePath, uModules);
+        }
+      }
+
       if (opts.modules || opts.utility) {
         // Apply suffixed names to keyframes rules
         if (Object.keys(keyframes).length) {
@@ -115,28 +141,6 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         }
 
         await opts.getModules(filePath, modules);
-      }
-
-      if (opts.utility) {
-        const utility = opts.utility as ResolvedUtilityOptions;
-        const { mode, output, getUtilityModules } = utility;
-
-        // Process rules
-        Object.values(rules).forEach(ruleArr => {
-          const sorted = ruleArr.sort((a, b) => a.ancestors - b.ancestors);
-          const lower = sorted[0].ancestors;
-          
-          sorted.filter(a => a.ancestors === lower)
-            .reduce((acc, { rule }) => [ ...acc, rule], [] as Rule[])
-            .forEach(rule => processRule(rule, mode, modules, utilityModules));
-        });
-        
-        if (output) Object.values(utilityModules).forEach(rule => root.append(rule));
-        
-        if (getUtilityModules) {
-          const uModules = Object.entries(utilityModules).reduce((acc, [className, rule]) => ({ ...acc, [className]: rule.toString() }), {});
-          await getUtilityModules(filePath, uModules);
-        }
       }
     },
   };
