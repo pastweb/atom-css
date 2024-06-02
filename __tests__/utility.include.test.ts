@@ -403,4 +403,52 @@ describe('postcss-utility-modules - utility', () => {
     expect(utilityModules[`background-color[_grey]`]).toBe(`.background-color[_grey] { background-color: grey\n}`);
     expect(utilityModules[`background-color[_lightgrey]`]).toBe(`.background-color[_lightgrey] { background-color: lightgrey\n}`);
   });
+
+  it('should process vendors custom properties and generate utility classes.', async () => {
+    const input = `.panel { background-color: white; -webkit-transition: all 4s ease; .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-box { padding: 1em; font-size: 1em; }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } }.panel-box { padding: 2em; font-size: 1em; } }`;
+
+    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }`;
+    
+    let cssFileName: string = '';
+    let cssModules: Record<string, string> = {};
+    let utilityFileName: string = '';
+    let utilityModules: Record<string, string> = {};
+
+    const getModules = jest.fn((filePath, modules) => {
+      cssFileName = filePath;
+      cssModules = modules;
+    });
+
+    const getUtilityModules = jest.fn((filePath, modules) => {
+      utilityFileName = filePath;
+      utilityModules = modules;
+    });
+
+    const output = await processCSS(input, {
+      getModules,
+      utility: {
+        getUtilityModules,
+        output: false,
+      },
+    });
+    
+    expect(output).toBe(expectedOutput);
+    expect(getModules).toHaveBeenCalledTimes(1);
+    expect(cssFileName).toBe('unknown');
+    expect(Object.keys(cssModules).length).toBe(4);
+    expect(cssModules[`panel`]).toBe(`panel background-color[_white] -webkit-transition[_all_4s_ease]`);
+    expect(cssModules[`panel-box`]).toBe(`padding[_2em] font-size[_1em]`);
+    expect(cssModules[`panel-header`]).toBe(`panel-header background-color[_grey]`);
+    expect(cssModules[`panel-footer`]).toBe(`panel-footer background-color[_lightgrey]`);
+    expect(getUtilityModules).toHaveBeenCalledTimes(1);
+    expect(utilityFileName).toBe('unknown');
+    expect(Object.keys(utilityModules).length).toBe(6);
+    expect(utilityModules[`background-color[_white]`]).toBe(`.background-color[_white] { background-color: white\n}`);
+    expect(utilityModules[`-webkit-transition[_all_4s_ease]`]).toBe(`.-webkit-transition[_all_4s_ease] { -webkit-transition: all 4s ease\n}`);
+    expect(utilityModules[`padding[_2em]`]).toBe(`.padding[_2em] { padding: 2em\n}`);
+    expect(utilityModules[`padding[_1em]`]).toBeUndefined();
+    expect(utilityModules[`font-size[_1em]`]).toBe(`.font-size[_1em] { font-size: 1em\n}`);
+    expect(utilityModules[`background-color[_grey]`]).toBe(`.background-color[_grey] { background-color: grey\n}`);
+    expect(utilityModules[`background-color[_lightgrey]`]).toBe(`.background-color[_lightgrey] { background-color: lightgrey\n}`);
+  });
 });

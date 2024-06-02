@@ -14,8 +14,10 @@ export function processRules(selector: string, rules: Rule[], mode: string, modu
   
       const decl = node as Declaration;
       const { prop, value } = decl;
-      propertyDeclarations[prop] = value;
       
+      if (prop.startsWith('--') && !/^--(webkit|moz|ms|o)-/.test(prop)) return;
+
+      propertyDeclarations[prop] = value;
       decl.remove(); // Remove the processed declaration from the original rule
     });
   });

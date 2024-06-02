@@ -267,7 +267,7 @@ In order to support a better DX and optimise teh CSS footprint, there are 3 diff
 - `coded`: the className syntax will be `_a26fl1d4`, where the hash code will be calculated using the property name and value as key.
 
 ### Processed classNames
-Of course we can expect a CSS class to be reused and modified for a specific selector. In this case the only the calss with the less specific selector will be processed as example:
+Of course we can expect a CSS class to be reused and modified for a specific selector. In this case only the calss with the less specific selector will be processed as example:
 ```css
 /* CSS source */
 .panel {
@@ -328,4 +328,5 @@ Of course we can expect a CSS class to be reused and modified for a specific sel
 .background-color[_grey] { background-color: grey; }
 .background-color[_lightgrey] { background-color: lightgrey; }
 ```
+Utility classes will be generated even for vendor perfixes `--webkit-`, `--moz-`, `--ms-` and `--o-`.
 Duplicated Properties for the same className at the same levell will be overwritten.
