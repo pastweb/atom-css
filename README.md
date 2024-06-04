@@ -1,4 +1,4 @@
-# postcss-utility-modules
+# CSS Utility Modules
 A [PostCSS] plugin inspired to [CSS Modules] and [Tailwind] CSS framework
 for handle CSS modules, scoped CSS variables and utilities.
 
