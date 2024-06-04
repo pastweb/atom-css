@@ -1,25 +1,25 @@
+export interface UtilityOptions {
+  mode?: 'readable' | 'semireadable' | 'coded';
+  media?: boolean;
+  container?: boolean;
+  output?: boolean;
+  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void;
+};
+
 export interface Options {
   scopeLength?: number;
   modules?: boolean;
-  utility?: boolean | {
-    mode?: 'readable' | 'semireadable' | 'coded';
-    getUtilityModules?: (filePath: string, modules: Record<string, string>) => void;
-    output?: boolean;
-  };
+  utility?: boolean | UtilityOptions;
   scopedCSSVariables?: boolean | string;
   getModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };
 
-export interface UtilityOptions {
-  mode?: 'readable' | 'semireadable' | 'coded';
-  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void;
-  output?: boolean;
-};
-
 export interface ResolvedUtilityOptions {
   mode: 'readable' | 'semireadable' | 'coded';
-  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
+  media: boolean;
+  container: boolean
   output: boolean;
+  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 }
 
 export interface ResolvedOptions {

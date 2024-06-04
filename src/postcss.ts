@@ -1,6 +1,6 @@
 import { resolveOptions, generateHash, countAncestors, processRules } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
-import type { PluginCreator, Rule } from 'postcss';
+import { AtRule, type PluginCreator, type Rule } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
 
 // Create the plugin
@@ -18,14 +18,16 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       // Object to store original class names and their suffixed names (modules)
       const modules: Record<string, string> = {};
       // Object to store original animation names and their suffixed names (modules)
+      let hasKeyframes = false;
       const keyframes: Record<string, string> = {};
       // Object to store original CSS variable names and their suffixed names
+      let hasScopedVars = false;
       const cssVarModules: Record<string, string> = {};
       // Object to store utility class name and its own css
-      const utilityModules: Record<string, Rule> = {};
+      const utilityModules: Record<string, Rule | AtRule> = {};
       // Set of classNames already processed for the utility functionality
       // const processedClasses: Set<string> = new Set();
-      const rules: Record<string, { ancestors: number, rule: Rule}[]> = {};
+      const rules: Record<string, { ancestors: number, rule: Rule | AtRule}[]> = {};
 
       if (!opts.modules && opts.scopedCSSVariables && opts.utility) return;
       // Generate a unique suffix for this file
@@ -42,8 +44,10 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             cssVarModules[originalProp] = suffixedProp;
             decl.prop = suffixedProp;
           });
+
+          hasScopedVars = true;
         } else {
-          const scopedVars = opts.scopedCSSVariables && Object.keys(cssVarModules).length;
+          const scopedVars = opts.scopedCSSVariables && hasScopedVars;
 
           if (opts.modules || scopedVars) {
             rule.walkDecls(decl => {
@@ -67,6 +71,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
                     if (suffixed && !keyframes[a]) keyframes[a] = name;
                   });
                 }
+
+                hasKeyframes = true;
               }
 
               if (scopedVars) {
@@ -104,22 +110,55 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         }
       });
 
+      root.walkAtRules(rule => {
+        // Apply suffixed names to keyframes rules
+        if (opts.modules && rule.name === 'keyframes' && hasKeyframes) {
+          const originalName = rule.params;
+          if (!keyframes[originalName]) return;
+          rule.params = keyframes[originalName];
+          return;
+        }
+
+        if (
+          opts.utility &&
+          ((opts.utility as ResolvedUtilityOptions).media || (opts.utility as ResolvedUtilityOptions).container) &&
+          (rule.name === 'media' || rule.name === 'container'))
+        {
+          const ancestors = countAncestors(rule);
+          // skip AtRules at the root level
+          if (!ancestors) return;
+          
+          const { media, container } = opts.utility as ResolvedUtilityOptions;
+          
+          if (media && rule.name !== 'media') return;
+          if (container && rule.name !== 'container') return;
+          
+          rules[rule.params] = rules[rule.params] || [];
+          rules[rule.params].push({ ancestors, rule });
+        }
+      });
+
       if (opts.utility) {
         const utility = opts.utility as ResolvedUtilityOptions;
         const { mode, output, getUtilityModules } = utility;
 
         // Process rules from the deepest
-        for (const selector of Object.keys(rules).reverse()) {
-          const sorted = rules[selector].sort((a, b) => a.ancestors - b.ancestors);
+        for (const key of Object.keys(rules).reverse()) {
+          const sorted = rules[key].sort((a, b) => a.ancestors - b.ancestors);
           const [ lower ] = sorted;
-          const selected: Rule[] = [];
+          const selected: (Rule | AtRule)[] = [];
           
           for (const { ancestors, rule } of sorted) {
             if (ancestors > lower.ancestors) break;
             selected.push(rule);
           }
-
-          processRules(lower.rule.selector, selected, mode, modules, utilityModules);
+          
+          const isAtRule = lower.rule instanceof AtRule;
+          const selector = isAtRule ?
+            ((lower.rule as AtRule).parent as Rule).selector :
+            (lower.rule as Rule).selector;
+          
+          processRules(selector, isAtRule, selected, mode, modules, utilityModules);
         }
         
         if (output) Object.values(utilityModules).forEach(rule => root.append(rule));
@@ -131,15 +170,6 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       }
 
       if (opts.modules || opts.utility) {
-        // Apply suffixed names to keyframes rules
-        if (Object.keys(keyframes).length) {
-          root.walkAtRules('keyframes', atRule => {
-            const originalName = atRule.params;
-            if (!keyframes[originalName]) return;
-            atRule.params = keyframes[originalName];
-          });
-        }
-
         await opts.getModules(filePath, modules);
       }
     },

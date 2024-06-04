@@ -2,11 +2,17 @@ import * as postcss from 'postcss';
 import { getUtilityClassName } from './getUtilityClassName';
 import { extractClassName } from './extractClassName';
 import { removeRuleIfEmpty } from './removeRuleIfEmpty';
-import type { Declaration, Rule } from 'postcss';
+import type { Declaration, Rule, AtRule } from 'postcss';
 
-export function processRules(selector: string, rules: Rule[], mode: string, modules: Record<string, string>, utilityModules: Record<string, Rule>): void {
+export function processRules(
+  selector: string,
+  isAtRule: boolean,
+  rules: (Rule | AtRule)[],
+  mode: string,
+  modules: Record<string, string>,
+  utilityModules: Record<string, Rule | AtRule>
+): void {
   const propertyDeclarations: Record<string, string> = {};
-  const { scoped, unscoped } = extractClassName(selector);
 
   rules.forEach(rule => {
     rule.each(node => {
@@ -22,16 +28,27 @@ export function processRules(selector: string, rules: Rule[], mode: string, modu
     });
   });
   
+  const [ first ] = rules as AtRule[];
+  const { scoped, unscoped } = extractClassName(selector);
+
   Object.entries(propertyDeclarations).forEach(([ prop, value ]) => {
-    const utilityClassName = getUtilityClassName(mode, prop, value);
+    const utilityClassName = getUtilityClassName(mode, prop, value, isAtRule ? first : undefined);
     const utilityRule = postcss.rule({ selector: `.${utilityClassName}` });
     const decl = postcss.decl({ prop, value, raws: { before: ' ', between: ': ' } });
-    utilityRule.append(decl);
+
+    if (isAtRule) {
+      const { name, params } = first;
+      const atRule = postcss.atRule({ name, params });
+      atRule.append(decl);
+      utilityRule.append(atRule);
+    } else {
+      utilityRule.append(decl);
+    }
 
     if (!utilityModules[utilityClassName]) utilityModules[utilityClassName] = utilityRule;
       
     modules[unscoped] = !modules[unscoped] ? `${scoped} ${utilityClassName}` : `${modules[unscoped]} ${utilityClassName}`;
   });
 
-  rules.forEach((rule, i) => removeRuleIfEmpty(scoped, unscoped, rule, modules, !!!i));
+  rules.forEach(rule=> removeRuleIfEmpty(scoped, unscoped, rule, modules, isAtRule));
 }
