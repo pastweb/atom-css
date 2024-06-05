@@ -2,6 +2,7 @@ import * as postcss from 'postcss';
 import { getUtilityClassName } from './getUtilityClassName';
 import { extractClassName } from './extractClassName';
 import { removeRuleIfEmpty } from './removeRuleIfEmpty';
+import { VENDORS_RE } from '../constants';
 import type { Declaration, Rule, AtRule } from 'postcss';
 
 export function processRules(
@@ -12,7 +13,7 @@ export function processRules(
   modules: Record<string, string>,
   utilityModules: Record<string, Rule | AtRule>
 ): void {
-  const propertyDeclarations: Record<string, string> = {};
+  const propertyDeclarations: Record<string, Record<string, string>> = {};
 
   rules.forEach(rule => {
     rule.each(node => {
@@ -20,33 +21,37 @@ export function processRules(
   
       const decl = node as Declaration;
       const { prop, value } = decl;
-      
-      if (prop.startsWith('--') && !/^--(webkit|moz|ms|o)-/.test(prop)) return;
+            
+      if (prop.startsWith('--') && !VENDORS_RE.test(prop)) return;
 
-      propertyDeclarations[prop] = value;
+      const propName = prop.replace(VENDORS_RE, '');
+      propertyDeclarations[propName] = propertyDeclarations[propName] || {};
+      propertyDeclarations[propName][prop] = value;
       decl.remove(); // Remove the processed declaration from the original rule
     });
   });
   
   const [ first ] = rules as AtRule[];
+  const atRule = isAtRule ? postcss.atRule({ name: first.name, params: first.params }) : false;
   const { scoped, unscoped } = extractClassName(selector);
 
-  Object.entries(propertyDeclarations).forEach(([ prop, value ]) => {
-    const utilityClassName = getUtilityClassName(mode, prop, value, isAtRule ? first : undefined);
+  Object.entries(propertyDeclarations).forEach(([ propName, properties ]) => {
+    const values = Object.entries(properties);
+    const utilityClassName = getUtilityClassName(mode, propName, values[0][1], isAtRule ? first : undefined);
+
+    if (utilityModules[utilityClassName]) return;
+
     const utilityRule = postcss.rule({ selector: `.${utilityClassName}` });
-    const decl = postcss.decl({ prop, value, raws: { before: ' ', between: ': ' } });
+    if (isAtRule) utilityRule.append(atRule as AtRule);
 
-    if (isAtRule) {
-      const { name, params } = first;
-      const atRule = postcss.atRule({ name, params });
-      atRule.append(decl);
-      utilityRule.append(atRule);
-    } else {
-      utilityRule.append(decl);
-    }
-
-    if (!utilityModules[utilityClassName]) utilityModules[utilityClassName] = utilityRule;
+    for(const [prop, value] of values) {
+      const decl = postcss.decl({ prop, value, raws: { before: ' ', between: ': ' } });
       
+      if (isAtRule) (atRule as AtRule).append(decl);
+      else utilityRule.append(decl);
+    }
+    
+    utilityModules[utilityClassName] = utilityRule;
     modules[unscoped] = !modules[unscoped] ? `${scoped} ${utilityClassName}` : `${modules[unscoped]} ${utilityClassName}`;
   });
 
