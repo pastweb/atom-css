@@ -1,4 +1,4 @@
-import { plugin as utilityModules} from '../postcss';
+import { postCssUtlityModules } from 'postcss-utility-modules';
 import { CSS_LANGS_RE } from './constants';
 import type { Plugin } from 'vite';
 import { ViteCssUtilityModulesOptions, ModulesMap } from './types';
@@ -52,7 +52,7 @@ export function viteUtilityModules(options: ViteCssUtilityModulesOptions = {}): 
         css: {
           postcss: {
             plugins: [
-              utilityModules({
+              postCssUtlityModules({
                 scopeLength,
                 scopedCSSVariables,
                 getModules(filePath, modules) {

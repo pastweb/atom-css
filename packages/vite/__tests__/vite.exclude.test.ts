@@ -1,4 +1,4 @@
-import { viteUtilityModules, ViteCssUtilityModulesOptions } from '../../src';
+import { viteUtilityModules, ViteCssUtilityModulesOptions } from '../src';
 import * as vite from 'vite';
 
 const cleanCode = (bufferString: string | Uint8Array, isString = true): string => {
