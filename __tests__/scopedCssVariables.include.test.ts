@@ -11,7 +11,7 @@ const processCSS = async (input: string, opts: Options = {}) => {
   return result.css;
 };
 
-describe('postcss-utility-modules - scopedCSSVariables', () => {
+describe('css-utility-modules - scopedCSSVariables', () => {
   it('should add suffixes to CSS variables in :root', async () => {
     const input = `
       :root {
@@ -37,8 +37,40 @@ describe('postcss-utility-modules - scopedCSSVariables', () => {
     const output = await processCSS(input, {
       modules: true,
       scopedCSSVariables: true,
-      getModules: (filePath, modules) => {},
     });
+
+    expect(output).toBe(expectedOutput);
+  });
+
+  it('should not add suffixes to CSS variables excluded.', async () => {
+    const input = `
+      :root {
+        --color: red;
+        --width: 100%;
+      }
+      .example {
+        color: var(--color);
+        width: var(--width);
+      }
+    `;
+    
+    const VARS_ID = getScope('/');
+    
+    const expectedOutput = `
+      :root {
+        --color${VARS_ID}: red;
+        --width: 100%;
+      }
+      .example {
+        color: var(--color${VARS_ID});
+        width: var(--width);
+      }
+    `;
+
+    const output = await processCSS(input, {
+      scopedCSSVariables: { exclude: /--width/ },
+    });
+    
     expect(output).toBe(expectedOutput);
   });
 });

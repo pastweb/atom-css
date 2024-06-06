@@ -11,7 +11,9 @@ export function processRules(
   rules: (Rule | AtRule)[],
   mode: string,
   modules: Record<string, string>,
-  utilityModules: Record<string, Rule | AtRule>
+  utilityModules: Record<string, Rule | AtRule>,
+  propFilter?: (id: unknown) => boolean,
+  valFilter?: (id: unknown) => boolean,
 ): void {
   const propertyDeclarations: Record<string, Record<string, string>> = {};
 
@@ -21,7 +23,9 @@ export function processRules(
   
       const decl = node as Declaration;
       const { prop, value } = decl;
-            
+      
+      if (propFilter && !propFilter(prop)) return;
+      if (valFilter && !valFilter(value)) return;
       if (prop.startsWith('--') && !VENDORS_RE.test(prop)) return;
 
       const propName = prop.replace(VENDORS_RE, '');

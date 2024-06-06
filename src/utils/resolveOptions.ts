@@ -1,7 +1,26 @@
 import { DEFAULT_UTILITY_OPTIONS } from '../constants';
-import { Options, ResolvedOptions, ResolvedUtilityOptions } from '../types';
+import { Options, ResolvedOptions, ResolvedUtilityOptions, ResolvedVariablesOptions } from '../types';
 
 export function resolveOptions(options: Options): ResolvedOptions {
+  let key = '';
+
+  switch(typeof options.scopedCSSVariables) {
+    case 'boolean':
+      key = options.scopedCSSVariables ? '/' : '';
+    break;
+    case 'string':
+      key = options.scopedCSSVariables as string;
+    break;
+    case 'object':
+      key = options.scopedCSSVariables.key || '/';
+    break;
+  }
+
+  const scopedCSSVariables: ResolvedVariablesOptions = {
+    ...typeof options.scopedCSSVariables === 'object' ? options.scopedCSSVariables : {},
+    key,
+  };
+
   return {
     scopeLength: options.scopeLength || 8,
     modules: !!options.modules,
@@ -9,8 +28,7 @@ export function resolveOptions(options: Options): ResolvedOptions {
       ...DEFAULT_UTILITY_OPTIONS,
       ...options.utility as Partial<ResolvedUtilityOptions>,
     } as ResolvedUtilityOptions: false,
-    scopedCSSVariables: options.scopedCSSVariables && typeof options.scopedCSSVariables === 'string' ? options.scopedCSSVariables :
-      options.scopedCSSVariables && typeof options.scopedCSSVariables === 'boolean' ? '/' : '',
+    scopedCSSVariables,
     getModules: options.getModules || (() => {}),
   };
 }

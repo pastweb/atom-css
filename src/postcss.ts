@@ -1,3 +1,4 @@
+import { createFilter } from '@rollup/pluginutils';
 import { resolveOptions, generateHash, countAncestors, processRules } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
 import { AtRule, type PluginCreator, type Rule } from 'postcss';
@@ -29,25 +30,29 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       // const processedClasses: Set<string> = new Set();
       const rules: Record<string, { ancestors: number, rule: Rule | AtRule}[]> = {};
 
-      if (!opts.modules && opts.scopedCSSVariables && opts.utility) return;
+      if (!opts.modules && opts.scopedCSSVariables.key && opts.utility) return;
       // Generate a unique suffix for this file
       const suffix = getScope(css);
 
+      const { include, exclude } = opts.scopedCSSVariables;
+      const varsFilter = (include || exclude) && createFilter(include, exclude);
+      
       root.walkRules(rule => {
-        if (rule.selector === ':root' && opts.scopedCSSVariables) {
+        if (rule.selector === ':root' && opts.scopedCSSVariables.key) {
           // Generate unique id scope for CSS variables in :root
           rule.walkDecls(decl => {
             if (!decl.prop.startsWith('--')) return;
-            
+            if (varsFilter && !varsFilter(decl.prop)) return;
+
             const originalProp = decl.prop;
-            const suffixedProp = `${originalProp}${getScope(opts.scopedCSSVariables)}`;
+            const suffixedProp = `${originalProp}${getScope(opts.scopedCSSVariables.key)}`;
             cssVarModules[originalProp] = suffixedProp;
             decl.prop = suffixedProp;
           });
 
           hasScopedVars = true;
         } else {
-          const scopedVars = opts.scopedCSSVariables && hasScopedVars;
+          const scopedVars = opts.scopedCSSVariables.key && hasScopedVars;
 
           if (opts.modules || scopedVars) {
             rule.walkDecls(decl => {
@@ -140,8 +145,9 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
 
       if (opts.utility) {
         const utility = opts.utility as ResolvedUtilityOptions;
-        const { mode, output, getUtilityModules } = utility;
-
+        const { mode, output, getUtilityModules, property, value } = utility;
+        const propFilter = property && (property.include || property.exclude) ? createFilter(property.include, property.exclude) : undefined;
+        const valFilter = value && (value.include || value.exclude) ? createFilter(value.include, value.exclude) : undefined;
         // Process rules from the deepest
         for (const key of Object.keys(rules).reverse()) {
           const sorted = rules[key].sort((a, b) => a.ancestors - b.ancestors);
@@ -158,7 +164,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             ((lower.rule as AtRule).parent as Rule).selector :
             (lower.rule as Rule).selector;
           
-          processRules(selector, isAtRule, selected, mode, modules, utilityModules);
+          processRules(selector, isAtRule, selected, mode, modules, utilityModules, propFilter, valFilter);
         }
         
         if (output) Object.values(utilityModules).forEach(rule => root.append(rule));

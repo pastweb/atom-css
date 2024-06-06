@@ -11,7 +11,7 @@ const processCSS = async (input: string, opts: Options = {}) => {
   return result.css;
 };
 
-describe('postcss-utility-modules - utility', () => {
+describe('css-utility-modules - utility', () => {
   it('should generate readable className utilies by default correctly', async () => {
     const input = `.class1 { color: red; background-color: white; .class2 { color: blue; } }`;
 
@@ -530,6 +530,56 @@ describe('postcss-utility-modules - utility', () => {
         container: true,
         getUtilityModules,
         output: false,
+      },
+    });
+    
+    expect(output).toBe(expectedOutput);
+    expect(getModules).toHaveBeenCalledTimes(1);
+    expect(cssFileName).toBe('unknown');
+    expect(Object.keys(cssModules).length).toBe(4);
+    expect(cssModules[`panel`]).toBe(`panel container[background-color][_green] background-color[_white]`);
+    expect(cssModules[`panel-box`]).toBe(`padding[_1em] font-size[_1em]`);
+    expect(cssModules[`panel-header`]).toBe(`panel-header background-color[_grey]`);
+    expect(cssModules[`panel-footer`]).toBe(`panel-footer background-color[_lightgrey]`);
+    expect(getUtilityModules).toHaveBeenCalledTimes(1);
+    expect(utilityFileName).toBe('unknown');
+    expect(Object.keys(utilityModules).length).toBe(6);
+    expect(utilityModules[`container[background-color][_green]`]).toBe(`.container[background-color][_green] {\n @container { background-color: green\n }\n}`);
+    expect(utilityModules[`background-color[_white]`]).toBe(`.background-color[_white] { background-color: white\n}`);
+    expect(utilityModules[`padding[_1em]`]).toBe(`.padding[_1em] { padding: 1em\n}`);
+    expect(utilityModules[`font-size[_1em]`]).toBe(`.font-size[_1em] { font-size: 1em\n}`);
+    expect(utilityModules[`background-color[_grey]`]).toBe(`.background-color[_grey] { background-color: grey\n}`);
+    expect(utilityModules[`background-color[_lightgrey]`]).toBe(`.background-color[_lightgrey] { background-color: lightgrey\n}`);
+  });
+
+  it('should not generate className filtered properties and values.', async () => {
+    const input = `.panel { --panel-width: 100%; width: var(--panel-width); background-color: white; @container { background-color: green; }.panel-box { padding: 1em; font-size: 1em; } .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
+
+    const expectedOutput = `.panel { --panel-width: 100%; width: var(--panel-width); .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
+    
+    let cssFileName: string = '';
+    let cssModules: Record<string, string> = {};
+    let utilityFileName: string = '';
+    let utilityModules: Record<string, string> = {};
+
+    const getModules = jest.fn((filePath, modules) => {
+      cssFileName = filePath;
+      cssModules = modules;
+    });
+
+    const getUtilityModules = jest.fn((filePath, modules) => {
+      utilityFileName = filePath;
+      utilityModules = modules;
+    });
+
+    const output = await processCSS(input, {
+      getModules,
+      utility: {
+        container: true,
+        property: { exclude: /--panel-width/ },
+        value: { exclude: /--panel-width/g },
+        output: false,
+        getUtilityModules,
       },
     });
     
