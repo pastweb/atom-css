@@ -6,12 +6,37 @@ import { Options } from '../src/types';
 const getScope = (...args: string[]) => `_${generateHash(8, ...args)}`;
 
 // Utility function to process CSS with the plugin
-const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([postCssUtlityModules(opts)]).process(input, { from: undefined });
+const processCSS = async (input: string, opts: Options = {}, filePath?: string) => {
+  const result = await postcss([postCssUtlityModules(opts)]).process(input, { from: filePath });
   return result.css;
 };
 
 describe('postcss-utility-modules - modules', () => {
+  it('should not add suffixes to class names', async () => {
+    const input = '.example { color: red; }\n.example:hover { color: blue; }';
+    const expectedOutput = input;
+    
+    const output = await processCSS(input, {
+      test: { include: /\.modules\.css$/ },
+      modules: true,
+    }, 'any.css');
+
+    expect(output).toBe(expectedOutput);
+  });
+
+  it('should add suffixes to class names for any.modules.css', async () => {
+    const input = '.example { color: red; }\n.example:hover { color: blue; }';
+    const ID = getScope(input);
+    const expectedOutput = `.example${ID} { color: red; }\n.example${ID}:hover { color: blue; }`;
+    
+    const output = await processCSS(input, {
+      test: { include: /\.modules\.css$/ },
+      modules: true,
+    }, 'any.modules.css');
+
+    expect(output).toBe(expectedOutput);
+  });
+
   it('should add suffixes to class names', async () => {
     const input = '.example { color: red; }\n.example:hover { color: blue; }';
     const ID = getScope(input);

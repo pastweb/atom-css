@@ -1,7 +1,7 @@
-import { Root, type Rule, type AtRule } from 'postcss';
+import type { Rule, AtRule } from 'postcss';
 
 export function countAncestors(rule: Rule | AtRule, ancestors = 0): number {
-  const hasRootParent = rule.parent instanceof Root;
+  const hasRootParent = rule.parent && rule.parent.type === 'root';
 
   if (hasRootParent) return ancestors;
   

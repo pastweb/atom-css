@@ -10,6 +10,7 @@ export function processRules(
   isAtRule: boolean,
   rules: (Rule | AtRule)[],
   mode: string,
+  scopeLength: number,
   modules: Record<string, string>,
   utilityModules: Record<string, Rule | AtRule>,
   propFilter?: (id: unknown) => boolean,
@@ -41,7 +42,7 @@ export function processRules(
 
   Object.entries(propertyDeclarations).forEach(([ propName, properties ]) => {
     const values = Object.entries(properties);
-    const utilityClassName = getUtilityClassName(mode, propName, values[0][1], isAtRule ? first : undefined);
+    const utilityClassName = getUtilityClassName(mode, propName, values[0][1], scopeLength, isAtRule ? first : undefined);
 
     if (utilityModules[utilityClassName]) return;
 

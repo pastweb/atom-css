@@ -7,6 +7,7 @@ export function getUtilityClassName(
   mode: string,
   prop: string,
   value: string,
+  scopeLength: number,
   atRule?: AtRule,
 ): string {
   const isAtRule = !!atRule;
@@ -34,12 +35,12 @@ export function getUtilityClassName(
       }
     break;
     case 'semireadable':
-      if (isAtRule) className = `${_name}[_${generateHash(8, _params, prop, value)}]`;
-      else className = `${prop}[_${generateHash(8, value)}]`;
+      if (isAtRule) className = `${_name}[_${generateHash(scopeLength, _params, prop, value)}]`;
+      else className = `${prop}[_${generateHash(scopeLength, value)}]`;
     break;
     case 'coded':
-      if (isAtRule) className = `_${generateHash(8, _name, _params, prop, value)}`;
-      else className = `_${generateHash(8, prop, value)}`;
+      if (isAtRule) className = `_${generateHash(scopeLength, _name, _params, prop, value)}`;
+      else className = `_${generateHash(scopeLength, prop, value)}`;
     break;
   }
 

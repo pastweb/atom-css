@@ -35,8 +35,8 @@ describe('css-utility-modules - scopedCSSVariables', () => {
     `;
 
     const output = await processCSS(input, {
+      scope:{ cssVariables: true },
       modules: true,
-      scopedCSSVariables: true,
     });
 
     expect(output).toBe(expectedOutput);
@@ -68,7 +68,11 @@ describe('css-utility-modules - scopedCSSVariables', () => {
     `;
 
     const output = await processCSS(input, {
-      scopedCSSVariables: { exclude: /--width/ },
+      scope: {
+        cssVariables: {
+          exclude: /--width/,
+        },
+      },
     });
     
     expect(output).toBe(expectedOutput);

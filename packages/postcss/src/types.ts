@@ -20,14 +20,22 @@ export interface VariablesOptions {
   key?: string;
   include?: FilterPattern,
   exclude?: FilterPattern,
-}
+};
 
-export interface Options {
-  scopeLength?: number;
-  modules?: boolean;
-  utility?: boolean | UtilityOptions;
-  scopedCSSVariables?: boolean | string | VariablesOptions;
-  getModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
+export interface ResolvedVariablesOptions {
+  key: string;
+  include?: FilterPattern,
+  exclude?: FilterPattern,
+};
+
+export interface ScopeOptions {
+  lenght?: number;
+  cssVariables?: boolean | string | VariablesOptions;
+};
+
+export interface ResolvedScopeOptions {
+  lenght: number;
+  cssVariables: ResolvedVariablesOptions;
 };
 
 export interface ResolvedUtilityOptions {
@@ -44,18 +52,26 @@ export interface ResolvedUtilityOptions {
     exclude?: FilterPattern,
   }
   getUtilityModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
-}
+};
 
-export interface ResolvedVariablesOptions {
-  key: string;
-  include?: FilterPattern,
-  exclude?: FilterPattern,
-}
+export interface Options {
+  test?: {
+    include?: FilterPattern,
+    exclude?: FilterPattern,
+  };
+  scope?: number | ScopeOptions;
+  modules?: boolean;
+  utility?: boolean | UtilityOptions;
+  getModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
+};
 
 export interface ResolvedOptions {
-  scopeLength: number;
+  test: {
+    include?: FilterPattern,
+    exclude?: FilterPattern,
+  };
+  scope: ResolvedScopeOptions;
   modules: boolean;
   utility: boolean | ResolvedUtilityOptions;
-  scopedCSSVariables: ResolvedVariablesOptions;
   getModules: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };

@@ -1,20 +1,26 @@
 import { createFilter } from '@rollup/pluginutils';
 import { resolveOptions, generateHash, countAncestors, processRules } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
-import { AtRule, type PluginCreator, type Rule } from 'postcss';
+import type { PluginCreator, Rule, AtRule } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
 
 // Create the plugin
 export const plugin: PluginCreator<Options> = (options: Options = {}) => {
   // Set default options if necessary
   const opts = resolveOptions(options);
-  const getScope = (...args: string[]) => `_${generateHash(opts.scopeLength, ...args)}`;
+  const { test: { include, exclude } } = opts;
+  const testFilter = (include || exclude) && createFilter(include, exclude);
+  const getScope = (...args: string[]) => `_${generateHash(opts.scope.lenght, ...args)}`;
+  const varScope = opts.scope.cssVariables.key && getScope(opts.scope.cssVariables.key) || '';
 
   return {
     postcssPlugin: 'postcss-utility-modules',
     // The Once method is called once for the root node at the end of the processing
     async Once(root, { result }) {
       const filePath = result.opts.from || 'unknown';
+
+      if (testFilter && !testFilter(filePath)) return;
+
       const css = root.toString();
       // Object to store original class names and their suffixed names (modules)
       const modules: Record<string, string> = {};
@@ -30,29 +36,29 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       // const processedClasses: Set<string> = new Set();
       const rules: Record<string, { ancestors: number, rule: Rule | AtRule}[]> = {};
 
-      if (!opts.modules && opts.scopedCSSVariables.key && opts.utility) return;
+      if (!opts.modules && opts.scope.cssVariables.key && opts.utility) return;
       // Generate a unique suffix for this file
       const suffix = getScope(css);
 
-      const { include, exclude } = opts.scopedCSSVariables;
+      const { include, exclude } = opts.scope.cssVariables;
       const varsFilter = (include || exclude) && createFilter(include, exclude);
       
       root.walkRules(rule => {
-        if (rule.selector === ':root' && opts.scopedCSSVariables.key) {
+        if (rule.selector === ':root' && opts.scope.cssVariables.key) {
           // Generate unique id scope for CSS variables in :root
           rule.walkDecls(decl => {
             if (!decl.prop.startsWith('--')) return;
             if (varsFilter && !varsFilter(decl.prop)) return;
 
             const originalProp = decl.prop;
-            const suffixedProp = `${originalProp}${getScope(opts.scopedCSSVariables.key)}`;
+            const suffixedProp = `${originalProp}${varScope}`;
             cssVarModules[originalProp] = suffixedProp;
             decl.prop = suffixedProp;
           });
 
           hasScopedVars = true;
         } else {
-          const scopedVars = opts.scopedCSSVariables.key && hasScopedVars;
+          const scopedVars = opts.scope.cssVariables.key && hasScopedVars;
 
           if (opts.modules || scopedVars) {
             rule.walkDecls(decl => {
@@ -108,7 +114,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           // store rules must be processed for utility
           if (opts.utility) {
             if (!rule.selector.startsWith('.')) return;
-            
+
             rules[rule.selector] = rules[rule.selector] || [];
             rules[rule.selector].push({ ancestors: countAncestors(rule), rule });
           }
@@ -159,12 +165,12 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             selected.push(rule);
           }
           
-          const isAtRule = lower.rule instanceof AtRule;
+          const isAtRule = lower.rule.type === 'atrule';
           const selector = isAtRule ?
             ((lower.rule as AtRule).parent as Rule).selector :
             (lower.rule as Rule).selector;
           
-          processRules(selector, isAtRule, selected, mode, modules, utilityModules, propFilter, valFilter);
+          processRules(selector, isAtRule, selected, mode, opts.scope.lenght, modules, utilityModules, propFilter, valFilter);
         }
         
         if (output) Object.values(utilityModules).forEach(rule => root.append(rule));
