@@ -29,12 +29,12 @@ export interface ResolvedVariablesOptions {
 };
 
 export interface ScopeOptions {
-  lenght?: number;
+  length?: number;
   cssVariables?: boolean | string | VariablesOptions;
 };
 
 export interface ResolvedScopeOptions {
-  lenght: number;
+  length: number;
   cssVariables: ResolvedVariablesOptions;
 };
 

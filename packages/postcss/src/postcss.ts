@@ -10,7 +10,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
   const opts = resolveOptions(options);
   const { test: { include, exclude } } = opts;
   const testFilter = (include || exclude) && createFilter(include, exclude);
-  const getScope = (...args: string[]) => `_${generateHash(opts.scope.lenght, ...args)}`;
+  const getScope = (...args: string[]) => `_${generateHash(opts.scope.length, ...args)}`;
   const varScope = opts.scope.cssVariables.key && getScope(opts.scope.cssVariables.key) || '';
 
   return {
@@ -170,7 +170,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             ((lower.rule as AtRule).parent as Rule).selector :
             (lower.rule as Rule).selector;
           
-          processRules(selector, isAtRule, selected, mode, opts.scope.lenght, modules, utilityModules, propFilter, valFilter);
+          processRules(selector, isAtRule, selected, mode, opts.scope.length, modules, utilityModules, propFilter, valFilter);
         }
         
         if (output) Object.values(utilityModules).forEach(rule => root.append(rule));

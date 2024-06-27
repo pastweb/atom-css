@@ -2,7 +2,7 @@ import { DEFAULT_UTILITY_OPTIONS } from '../constants';
 import { Options, ResolvedOptions, ResolvedUtilityOptions, ResolvedVariablesOptions, ScopeOptions, ResolvedScopeOptions } from '../types';
 
 export function resolveOptions(options: Options): ResolvedOptions {
-  const lenght = !options.scope ? 8 : typeof options.scope === 'number' ? options.scope as number : (options.scope as ScopeOptions).lenght || 8;
+  const lenght = !options.scope ? 8 : typeof options.scope === 'number' ? options.scope as number : (options.scope as ScopeOptions).length || 8;
   const scope = typeof options.scope === 'object' ? { ...options.scope, lenght } : { lenght };
 
   let key = '';
