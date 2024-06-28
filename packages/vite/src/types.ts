@@ -1,14 +1,25 @@
-export type ViteCssUtilityModulesOptions = {
-  scopeLength?: number;
-  mode?: 'readable' | 'semireadable' | 'coded';
-  scopedCSSVariables?: boolean | string;
+import { Options, UtilityOptions } from '../../postcss';
+
+export type ViteCssUtilityModulesOptions = Omit<Options, 'getModules' | 'utility'> & {
+  utility?: Omit<UtilityOptions, 'getUtilityModules' | 'output'>;
 };
 
+export interface ModuleData {
+  isEntry: boolean;
+  importedCss: Set<string>;
+  css?: string;
+  modules?: Record<string, string>;
+  utilities?: Record<string, string>;
+  jsVarName?: string;
+  importer?: string;
+}
+
 export type ModulesMap = {
-  [ filePath: string ]: {
-    modules?: Record<string, string>;
-    utilities?: Record<string, string>;
-    jsVarName?: string;
-    importer?: string;
-  };
+  [ filePath: string ]: ModuleData;
+};
+
+export interface ImporterData {
+  id: string;
+  isEntry?: boolean;
+  importedCss: Set<string>;
 };

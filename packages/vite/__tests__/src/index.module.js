@@ -1,3 +1,3 @@
-import classes from './index.module.css';
+import classes from './index.modules.css';
 
 console.log(classes);
