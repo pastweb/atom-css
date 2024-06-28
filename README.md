@@ -21,14 +21,14 @@ With Utility Modules you are the framework rock star 🤘😎🤘.
 ## Summary
 * Options
   * [test](#test)
-  * [scope](###scope)
-    * [cssVariables](###cssVariables)
-  * [modules](###modules)
-    * [getModules](###getModules)
-    * [Globals](###Globals)
-  * [utility](###utility)
-    * [mode](###mode)
-    * [getUtlityModules](###getUtlityModules)
+  * [scope](#scope)
+    * [cssVariables](#cssVariables)
+  * [modules](#modules)
+    * [getModules](#getModules)
+    * [Globals](#Globals)
+  * [utility](#utility)
+    * [mode](#mode)
+    * [getUtlityModules](#getUtlityModules)
 * Plugins
   * [PostCSS](https://github.com/pastweb/css-utility-modules/blob/master/packages/postcss/README.md)
   * [Vite](https://github.com/pastweb/css-utility-modules/blob/master/packages/vite/README.md)
