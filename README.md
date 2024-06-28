@@ -18,30 +18,88 @@ With Utility Modules you are the framework rock star 🤘😎🤘.
 [bulma]: https://bulma.io/
 [semanticui]: https://semantic-ui.com/
 
-## Plugins
-[PostCSS](https://github.com/pastweb/css-utility-modules/blob/master/packages/postcss/README.md)
-[Vite]
+## Summary
+* Options
+  * [test](###test)
+  * [scope](###scope)
+    * [cssVariables](###cssVariables)
+  * [modules](###modules)
+    * [getModules](###getModules)
+    * [Globals](###Globals)
+  * [utility](###utility)
+    * [mode](###mode)
+    * [getUtlityModules](###getUtlityModules)
+* Plugins
+  * [PostCSS](https://github.com/pastweb/css-utility-modules/blob/master/packages/postcss/README.md)
+  * [Vite](https://github.com/pastweb/css-utility-modules/blob/master/packages/vite/README.md)
 
 ## Options
-| PropName           |                                        type                                        | required | default       | Description                                                                                                                                                                   |
-|--------------------|:----------------------------------------------------------------------------------:|----------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| scopeLength        |                                       number                                       |    no    |       8       | the SHA-256 hash code length.                                                                                                                                                 |
-| modules            |                                       boolean                                      |    no    |     false     | enable the CSS modules giving a scope suffix for CSS classes and keyframes names.                                                                                             |
-| scopedCSSVariables |                                  boolean \| string                                 |    no    |     false     | if true the default "/" is used as hash key to add a suffix to the CSS variables declared in the `:root` selector. If is a string, the given string is used for as hash key.  |
-| getModules         | (filePath: string, modules: Modules) =&amp;gt; void \| Promise&amp;lt;void&amp;gt; |    no    | noop function | function called giving the filepath and CSS Modules Object.                                                                                                                   |
-| utility            |                              boolean \| UtilityOptions                             |    no    |     false     | Utility Options                                                                                                                                                               |
+---
+### test
+The `test` option allow to select the files must be processed if specified, all the files will be processed othewise.
+example:
+```js
+// options
+{
+    test: {
+        include: /\.util\.css$/,
+        exclude: /\.not\.util\.css$/,
+    },
+}
+```
+Both the `test` options (`include` and `exclude`) can accept as parameter a `RegExp`, a `string`, a `null` value or an array of them. In the example above all the files which ands with `.util.css` will be processed, except for the files ending with `.not.util.css`.
 
-### Utility Options
-| PropName          | type                                         | required | default       | Description                                                                             |
-|-------------------|----------------------------------------------|----------|---------------|-----------------------------------------------------------------------------------------|
-| mode         | "readable" \| "semireadable" \| "coded"      |    no    |   "readable"  | the coding method for the utility classNames check the [Utility] section for more info. |
-| getUtilityModules | function |    no    | noop function | function called giving the `filePath` and Utility `modules` Object as parameters, and returns `void` or `Promise void`.                         |
-| output            | boolean                                      |    no    |      true     | prints the CSS utility classes in the final CSS string.                                 |
+### scope
+The suffix scope ID is calculated with a SHA-256 hash `8` characters long by default preceded form `_`, the key used is:
+- the css code for the CSS Modules and `keyframes` names.
+- "/" by default if `cssVariables` option is `true` or the string assigned to the option intead for the CSS variables.
+- the CSS property `value` for the utilities in `semireadable` mode or `property` ad `value` form `coded` mode.
 
-## Examples
+Using the first `8` characters of a SHA-256 hash provides 16^8 (approximately 4.3 billion) possible combinations. While this is a large number, it's not guaranteed to be unique in all cases, especially in scenarios with a massive number of files. For most practical purposes, this should be sufficient to avoid collisions, but it's important to consider the context in which the plugin is used.
 
-### CSS Modules
+If you want to increase the uniqueness without adding too much complexity, you could use a longer portion of the hash. However, for most applications, `8` characters are generally enough.
+
+shorthand to increse the scope suffix ID:
+```js
+// Options
+{
+    scope: 10 // length or you can assigh a scope configuration object
+}
+```
+```js
+// Options
+{
+    scope: {
+        length: 10,
+    },
+}
+```
+### cssVariables
+The scope configuration object can contains a `cssVariables` option, which accept as value a `boolean`, a `string` or a configuration object.
+These options handle the behaviour related to che CSS Variable scoping.
+If `cssVariables` are set to `true`, a scope suffix will be added for the CSS variables declared in the `:root` selector using `/` by default as key for generate the the suffix ID with the current length.
+If a `string` is assigned, this will be used as key for the suffix ID.
+
+Configuration object example:
+
+```js
+// Options
+{
+    scope: {
+        cssVariables: {
+            key: '/' // by default - optional
+            include: /^-[A-Z]+/, // optional
+            exclude: /[a-z]$/ // optional
+        },
+    }
+}
+```
+In the example above has been used the optional options `include` and `exclude` to filter the CSS variable names where apply the scope.
+
+### modules
 For option `{ modules: true }`:
+The scope ID suffix will be applied to all the classNames and keyframes names in the file.
+as example:
 
 ```css
 .title { color: green; }
@@ -66,15 +124,28 @@ After the transformation it will become like this:
 @keyframes fadeIn_116zl1d3 { opacity: 1; }
 @keyframes moveIn_116zl1d3 { margin-top: 100px; }
 ```
-
-And the plugin will give you a Module object for transformed classes:
-
+### getModules
+The `getModules` option accept a `function` or an `async function` which get as parameters `modules` (an object with the className as key and the scoped className as value), and `filePath` (which is the full file path);
+example:
+```js
+// options
+{
+    modules: true,
+    getModules: (modules, filepath) => {
+        // do something
+    },
+}
+```
+Where the modules object will be something like:
 ```js
 {
   'title': 'title_116zl1d3',
   'fade-in': 'fade-in_116zl1d3'
 }
 ```
+This function will be called if the `modules` and/or the `utility` options are set.
+You can check [here](###utility) more  info about the `utility` option.
+
 ### Global
 Is possible using the CSS Module option to keep global (so without scope suffix) a class or an animation name.
 You can use the syntax `:global .className` or `:global(.className)` for the classes and `global(animationName)`
@@ -102,7 +173,7 @@ After the transformation it will become like this:
 @keyframes fadeIn { opacity: 1; }
 @keyframes moveIn_116zl1d3 { margin-top: 100px; }
 ```
-And the plugin will give you a Module object for transformed classes:
+And the getModules function give you a Module object for transformed classes:
 
 ```js
 {
@@ -110,42 +181,19 @@ And the plugin will give you a Module object for transformed classes:
 }
 ```
 
-### Saving exported classes
-
-By default, no any JSON file with exported classes will be placed next to corresponding CSS.
-But you have a freedom to make everything you want with exported classes, just
-use the `getModules` callback. For example, save data about classes into a corresponding JSON file:
-
+### utility
+The `utility` option accept as value a `true` or a configuration object where the `true` is a shorthend for dafault configuration.
 ```js
-import { postcssUtlityModules } from 'postcss-utility-modules';
-...
-postcss([
-  postcssUtlityModules({
-    getModules: function (filePath, modules) {
-      var path = require("path");
-      var cssName = path.basename(filePath, ".css");
-      var jsonFileName = path.resolve("./build/" + cssName + ".json");
-      fs.writeFileSync(jsonFileName, JSON.stringify(modules));
+// options
+{
+    utility: {
+        mode: 'readable', // by default, could be 'readable' | 'semireadable' | 'coded'
+        media: false, // by default, process the nasted media queries if true
+        container: false, // by default, process the container properties if true
+        output: true, // by default, append the css utilites rules at the end of the file if true
     },
-  }),
-]);
+}
 ```
-
-`getModules` may also return a `Promise`.
-
-## Scope Suffix ID
-The suffix ID is calculated with a SHA-256 hash `8` characters long, the key used is:
-
-- the css code for the CSS Modules and `keyframes` names.
-- "/" by default if `scopedCSSVariables` option is `true` or the string assigned to the option intead for the CSS variables.
-- the CSS property `value` for the utilities in `semireadable` mode or `property` ad `value` form `coded` mode.
-
-Using the first 8 characters of a SHA-256 hash provides 16^8 (approximately 4.3 billion) possible combinations. While this is a large number, it's not guaranteed to be unique in all cases, especially in scenarios with a massive number of files. For most practical purposes, this should be sufficient to avoid collisions, but it's important to consider the context in which the plugin is used.
-
-If you want to increase the uniqueness without adding too much complexity, you could use a longer portion of the hash using the `scopeLength` option. However, for most applications, 8 characters are generally enough.
-
-## Utility
-
 The utility functionality read the CSS properies and values decalsered in each class and for each declaration generate a
 new CSS rule `.property-name[_value] { property-name: value; }`.
 The property will be removed from the original CSS class rule and the utiliy className will be added to the Css module for that className.
@@ -202,8 +250,13 @@ With nested selectors:
 }
 .animation[_3s_linear_animationName] { animation: 3s linear animationName; }
 ```
+### mode
+In order to support a better DX and optimise teh CSS footprint, there are 3 differnt `mode` for the utility classNames generation:
+- `readable`: the utility className will folow the syntax `property-name[_value]`, where the value is the CSS property value string with the replacement for any space, comma or dot using a single `-` as in the example above.
+- `semireadable`: the className syntax will be `property-name[_116zl1d3]`, where the hash code will be calculated using the property value as key.
+- `coded`: the className syntax will be `_a26fl1d4`, where the hash code will be calculated using the property name and value as key.
 
-### Utlity Modules
+### getUtlityModules
 For a more elastic usage as example, if the plugin want to be implemented in a bundle loader tool pligin such as [vite], [webpack] or [rspack],
 is possible use in combination the `getUtilityModules` and `output` options for generate an utilities map and not having the utiliy classes in the resultant CSS code, giving the opportunity to implemet a more optimised logic for separate utiliies CSS code bundle generation using the Utility Modules.
 
@@ -245,11 +298,6 @@ is possible use in combination the `getUtilityModules` and `output` options for 
   div { margin: 0; }
 }
 ```
-### Utility class names mode
-In order to support a better DX and optimise teh CSS footprint, there are 3 differnt `mode` for the utility classNames generation:
-- `readable`: the utility className will folow the syntax `property-name[_value]`, where the value is the CSS property value string with the replacement for any space, comma or dot using a single `-` as in the example above.
-- `semireadable`: the className syntax will be `property-name[_116zl1d3]`, where the hash code will be calculated using the property value as key.
-- `coded`: the className syntax will be `_a26fl1d4`, where the hash code will be calculated using the property name and value as key.
 
 ### Processed classNames
 Of course we can expect a CSS class to be reused and modified for a specific selector. In this case only the calss with the less specific selector will be processed as example:
