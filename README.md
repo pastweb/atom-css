@@ -1,41 +1,26 @@
-# PostCSS plugin for CSS Utility Modules
-A [PostCSS] plugin inspired to [CSS Modules] and [Tailwind] CSS framework
-for handle CSS modules, scoped CSS variables and utilities.
+# CSS Utility Modules
+A tool inspired to [CSS Modules] and [Tailwind] CSS framework
+for handle CSS modules, scoped CSS variables and utilities on the fly in the CSS module object.
 
 [postcss]: https://github.com/postcss/postcss
 [css modules]: https://github.com/css-modules/css-modules
 [tailwind]: https://github.com/tailwindlabs/tailwindcss
 
 ## Motivation
-Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read, also, the use of a tool like Tailwind needs a specific plugin for the bundle tool used and the front end framework as it reads the jacascript code to optimise the CSS footprint.
-This plugin try to bring the same idea reducing the CSS footprint using CSS utilities but calculted on the fly reading a standard
-CSS source code, and orgenise the class utilities in the CSS Module Object even keeping most of the CSS Modules functionalities.
-This approach keep the unctionalities agnostic in terms of the Front end framework used putting in the center just the CSS standard.
+Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read and maintain, also, the use of a tool like Tailwind needs a specific plugin for the bundle tool used and the front end framework as it reads the jacascript code to optimise the CSS footprint.
+This plugin try to bring the same idea reducing the CSS footprint using CSS utilities but calculted on the fly reading a standard CSS source code, and orgenise the class utilities in the CSS Module Object even keeping most of the CSS Modules functionalities.
+This approach keep the functionalities agnostic in terms of the Front end framework used putting in the center just the CSS standard.
 Of course there are little considerations to make in order to write the your own CSS in for an optimised CSS output related to your specific case, but nothing too crazy if you are already familiar on the use of CSS Modules and any CSS Preprocessr.
+Also There are great CSS Frameworks out there quite largely use from many compaies, sich as [Bootstrap], [Bulma], [SemanticUI] and so on. Use this plugin in addition to those CSS Frameworks would improve the CSS footprint without change your code base.
 With Utility Modules you are the framework rock star 🤘😎🤘.
 
-## install
-```bash
-npm i -D postcss-utility-modules
-```
+[bootstrap]: https://getbootstrap.com/docs/3.4/css/
+[bulma]: https://bulma.io/
+[semanticui]: https://semantic-ui.com/
 
-## Usage
-```ts
-import postcss from 'postcss';
-import { postcssUtlityModules }, { Options } from 'postcss-utility-modules';
-
-const fileName = 'my/file/name.css';
-const cssInput = '...any css code here';
-// Utility function to process CSS with the plugin
-const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([ postcssUtlityModules(opts) ]).process(input, { from: fileName });
-  return result.css;
-};
-
-const output = await processCSS(cssInput, { /** options */ });
-
-console.log(output);
-```
+## Plugins
+[PostCSS](https://github.com/pastweb/css-utility-modules/blob/master/packages/postcss/README.md)
+[Vite]
 
 ## Options
 | PropName           |                                        type                                        | required | default       | Description                                                                                                                                                                   |
