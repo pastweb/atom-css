@@ -65,13 +65,16 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         // use the code parsed from the vite:css-plugin for prePsessors and url resolution
         let newCode = code;
         const classes = Array.from(new Set(match.filter(m => isNaN(parseInt(m.charAt(1))))));
+        // remove de scope if present
         classes.forEach(scoped => {
           const unscoped = scoped.replace(/^\._/, '.').replace(/_\w+$/, '');
           newCode = newCode.replace(new RegExp(`\\${scoped}`, 'g'), unscoped);
         });
         
         const css = await processCSS(newCode, opts, id);
-        modulesMap[id].css = code;
+        modulesMap[id].css = css;
+
+        return { code: css };
       },
     },
     {
@@ -79,9 +82,8 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
       enforce: 'post',
       async transform(_, id, options) {
         if (testFilter && !testFilter(id)) return;
-  
+
         const { modules } = modulesMap[id];
-        // if (isEntry) return;
 
         const modulesCode = dataToEsm(modules, { namedExports: true, preferConst: true });
 
@@ -134,16 +136,23 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
 
       async generateBundle(_options, bundle) {
         const dataModules = Object.values(modulesMap);
-  
-        for (const chunk of Object.values(bundle)) {
+        for (const [ file, chunk ] of Object.entries(bundle)) {
           const { type, fileName } = chunk;
   
-          if (type !== 'asset') return;
+          switch(type) {
+            case 'asset':
+              const moduleData = getModuleData(dataModules, importers, fileName);
   
-          const moduleData = getModuleData(dataModules, importers, fileName);
-  
-          if (moduleData) {
-            appendUtilities(dataModules, moduleData, importers, chunk);
+              if (moduleData) {
+                appendUtilities(dataModules, moduleData, importers, chunk);
+              }
+            break;
+            case 'chunk':
+              const { facadeModuleId, code }  = chunk;
+              if (facadeModuleId && modulesMap[facadeModuleId] && (!code || code === '\n')) {
+                delete bundle[file];
+              }
+            break;
           }
         }
       },
