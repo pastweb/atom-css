@@ -73,8 +73,8 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         
         const css = await processCSS(newCode, opts, id);
         modulesMap[id].css = css;
-
-        return { code: css };
+        const map = this.getCombinedSourcemap();
+        return { code: css, map };
       },
     },
     {
@@ -109,11 +109,7 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
             `import.meta.hot.prune(() => __vite__removeStyle(__vite__id))`,
           ].join('\n');
 
-          return {
-            code,
-            // map: null,
-            // meta: { vite: { isSelfAccepting: true } },
-          };
+          return { code, map: { mappings: '' } };
         }
         
         return { code: modulesCode };
