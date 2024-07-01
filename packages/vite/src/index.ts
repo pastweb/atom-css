@@ -1,2 +1,2 @@
-export { utilityModulesPre, utilityModulesPost } from './plugins';
+export { utilityModules } from './plugin';
 export type { ViteCssUtilityModulesOptions } from './types';

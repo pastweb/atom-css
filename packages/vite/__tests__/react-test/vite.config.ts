@@ -1,11 +1,13 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
+import Inspect from 'vite-plugin-inspect';
 import react from '@vitejs/plugin-react';
-import { viteUtilityModules } from '../../../dist/index.mjs';
+import { utilityModules } from '../../dist/index.mjs';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    Inspect(),
     react(),
-    viteUtilityModules({ mode: 'readable' }),
+    utilityModules({ utility: true }),
   ],
 })

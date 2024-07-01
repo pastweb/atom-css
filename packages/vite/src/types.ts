@@ -1,6 +1,6 @@
 import { Options, UtilityOptions } from '../../postcss';
 
-export type ViteCssUtilityModulesOptions = Omit<Options, 'getModules' | 'utility'> & {
+export type ViteCssUtilityModulesOptions = Omit<Options, 'test' | 'getModules' | 'utility'> & {
   utility?: Omit<UtilityOptions, 'getUtilityModules' | 'output'>;
 };
 
