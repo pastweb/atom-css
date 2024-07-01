@@ -46,7 +46,7 @@ export function processRules(
 
     if (utilityModules[utilityClassName]) return;
 
-    const utilityRule = postcss.rule({ selector: `.${utilityClassName}` });
+    const utilityRule = postcss.rule({ selector: `.${utilityClassName.replace(/\[/g, '\\[').replace(/\]/g, '\\]')}` });
     if (isAtRule) utilityRule.append(atRule as AtRule);
 
     for(const [prop, value] of values) {
