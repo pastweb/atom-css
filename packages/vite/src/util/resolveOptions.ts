@@ -17,7 +17,7 @@ export function resolveOptions(options: ViteCssUtilityModulesOptions, modulesMap
     ...options.utility ? {
       utility: {
         ...options.utility,
-        mode: options.utility.mode || mode === 'development' ? 'readable' : 'coded',
+        mode: options.utility.mode ? options.utility.mode : mode === 'development' ? 'readable' : 'coded',
         output: false,
         getUtilityModules(filePath, modules) {
           modulesMap[filePath] = modulesMap[filePath] || {};
