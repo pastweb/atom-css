@@ -3,7 +3,6 @@ import * as walk from 'acorn-walk';
 import { setClassNames } from './setClasses';
 import { NodeType } from './constants';
 import { CSS_LANGS_RE } from '../../constants';
-import type { Node } from 'acorn';
 import { ImportDeclaration, ImportSpecifier, UsedClasses } from './types';
 import { ModulesMap } from '../../types';
 
@@ -26,7 +25,7 @@ const frameworks: Record<string, (node: ImportDeclaration, functionNames: Set<st
   },
 };
 
-export function getUsedClasses(id: string, ast: Node, modulesMap: ModulesMap): void {
+export function getUsedClasses(id: string, ast: any, modulesMap: ModulesMap): void {
   const classes: UsedClasses = {};
   const functionNames: { [frameworkName: string]: { funcs: Set<string>, name: string; } } = {};
 
