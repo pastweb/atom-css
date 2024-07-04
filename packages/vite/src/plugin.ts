@@ -1,9 +1,9 @@
 import path from 'node:path';
 import postcss from 'postcss';
 import { postCssUtlityModules, Options } from '../../postcss';
-import { resolveOptions, getModuleData, appendUtilities } from './util';
+import { resolveOptions, getModuleData, appendUtilities, getUsedClasses } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
-import { CSS_LANGS_RE, CLIENT_PUBLIC_PATH, CLASS_NAME_RE } from './constants';
+import { CSS_LANGS_RE, CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE } from './constants';
 import type { Plugin, ResolvedConfig } from 'vite';
 import { ViteCssUtilityModulesOptions, ModulesMap, ImporterData } from './types';
 
@@ -44,7 +44,9 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
           if (!resolved) return;
           
           const { id: resolvedId } = resolved;
-          modulesMap[resolvedId] = { isEntry, importedCss: new Set() };
+          modulesMap[resolvedId] = modulesMap[resolvedId] || {};
+          modulesMap[resolvedId].isEntry = isEntry;
+          modulesMap[resolvedId].importedCss = new Set();
           
           if (importer) {
             modulesMap[resolvedId].importer = importer;
@@ -56,7 +58,15 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
     {
       name: 'vite-plugin-utility-modules',
       async transform(code, id) {
-        if (testFilter && !testFilter(id)) return;
+        if (JS_TYPES_RE.test(id) && !/node_modules/.test(id)) {
+          console.log(code);
+          getUsedClasses(id, this.parse(code), modulesMap);
+          return null;
+        } else if (testFilter && !testFilter(id)) return;
+        console.log('------- default modulesMap ---------------')
+        console.log(id);
+        console.log(modulesMap[id].usedClasses);
+        console.log('----------------------')
         
         const match = code.match(CLASS_NAME_RE);
         
@@ -67,10 +77,13 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         const classes = Array.from(new Set(match.filter(m => isNaN(parseInt(m.charAt(1))))));
         // remove de scope if present
         classes.forEach(scoped => {
+          // TODO: change the regexp to match just 1 _ at the scope beginning
           const unscoped = scoped.replace(/^\._/, '.').replace(/_\w+$/, '');
           newCode = newCode.replace(new RegExp(`\\${scoped}`, 'g'), unscoped);
         });
         
+        // TODO: add the usedClasses option to the ops object
+        // const { usedClesses } = modulesMap[id];
         const css = await processCSS(newCode, opts, id);
         modulesMap[id].css = css;
         const map = this.getCombinedSourcemap();

@@ -1,0 +1,16 @@
+export enum NodeType {
+  ArrayExpression = 'ArrayExpression',
+  BinaryExpression = 'BinaryExpression',
+  CallExpression = 'CallExpression',
+  ConditionalExpression = 'ConditionalExpression',
+  Identifier = 'Identifier',
+  ImportDeclaration = 'ImportDeclaration',
+  ImportDefaultSpecifier = 'ImportDefaultSpecifier',
+  ImportSpecifier = 'ImportSpecifier',
+  Literal = 'Literal',
+  MemberExpression = 'MemberExpression',
+  ObjectExpression = 'ObjectExpression',
+  Property = 'Property',
+  TemplateElement = 'TemplateElement',
+  TemplateLiteral = 'TemplateLiteral',
+};

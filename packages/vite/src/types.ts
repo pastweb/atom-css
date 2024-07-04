@@ -10,6 +10,7 @@ export interface ModuleData {
   css?: string;
   modules?: Record<string, string>;
   utilities?: Record<string, string>;
+  usedClasses?: string[];
   jsVarName?: string;
   importer?: string;
 }

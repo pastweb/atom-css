@@ -21,7 +21,8 @@
     "postcss": "*"
   },
   "dependencies": {
-    "@rollup/pluginutils": "^5.1.0"
+    "@rollup/pluginutils": "^5.1.0",
+    "acorn-walk": "^8.3.3"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.8",

@@ -1,16 +1,19 @@
+import { useState } from 'react';
+import clsx from 'clsx';
 import classes from './Panel.module.css';
 
 export default function Panel() {
-    console.log(classes)
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
         <div className={classes.Panel}>
-            <div className={classes['panel-header']}>
+            <div className={clsx(classes['panel' + '-' + 'header'], { isOpen })}>
                 <div className={classes['panel-box']}>
                     thisi is the Panel Header
                 </div>
             </div>
             this is the content
-            <div className={classes['panel-footer']}>
+            <div className={clsx(classes['panel-footer'], { isOpen })}>
                 <div className={classes['panel-box']}>
                     this is the panel footer
                 </div>

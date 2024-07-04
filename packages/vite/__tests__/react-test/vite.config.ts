@@ -8,6 +8,15 @@ export default defineConfig({
   plugins: [
     Inspect(),
     react(),
-    utilityModules({ utility: true }),
+    utilityModules({
+      scope: {
+        cssVariables: true,
+      },
+      modules: true,
+      utility: {
+        // mode: 'semireadable',
+        media: true,
+      },
+    }),
   ],
 })
