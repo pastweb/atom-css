@@ -3,7 +3,7 @@ import postcss from 'postcss';
 import { postCssUtlityModules, Options } from '../../postcss';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
-import { CSS_LANGS_RE, CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE } from './constants';
+import { CSS_LANGS_RE, CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE, FRAMEWORK_TYPE } from './constants';
 import type { Plugin, ResolvedConfig } from 'vite';
 import { ViteCssUtilityModulesOptions, ModulesMap, ImporterData } from './types';
 
@@ -58,9 +58,11 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
     {
       name: 'vite-plugin-utility-modules',
       async transform(code, id) {
-        if (JS_TYPES_RE.test(id) && !/node_modules/.test(id)) {
-          console.log(code);
+        if (!/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
+          // console.log(id);
+          // console.log(code);
           getUsedClasses(id, this.parse(code), modulesMap);
+
           return null;
         } else if (testFilter && !testFilter(id)) return;
         console.log('------- default modulesMap ---------------')

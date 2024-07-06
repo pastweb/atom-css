@@ -9,7 +9,7 @@ export default function Panel() {
         <div className={classes.Panel}>
             <div className={clsx(classes['panel' + '-' + 'header'], { isOpen })}>
                 <div className={classes['panel-box']}>
-                    thisi is the Panel Header
+                    this is the Panel Header
                 </div>
             </div>
             this is the content

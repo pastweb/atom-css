@@ -4,8 +4,8 @@ function getClasses(classes: string): string[] {
   return classes.trim().replace(/ +/g, ' ').split(' ').filter(c => c);
 }
 
-export function setClassNames(propsObj: any, classPropName: string, identifiers: Record<string, string[]>): void {
-  const from: Record<string, (node: any, identifiers: Record<string, string[]>) => string> = {
+export function setClassNames(node: any, identifiers: Record<string, string[]>): void {
+  const from: Record<string, (node: any, identifiers: Record<string, string[]>, getIdentifier?: boolean) => string> = {
     [NodeType.ArrayExpression]: (node, identifiers) => node.elements.map((e: any) => from[e.type] ? from[e.type](e, identifiers) : '').join(' '),
     [NodeType.BinaryExpression]: (node, identifiers) => {
       if (node.operator !== '+') return '';
@@ -26,12 +26,17 @@ export function setClassNames(propsObj: any, classPropName: string, identifiers:
     },
     [NodeType.Identifier]: (node, _) => node.name,
     [NodeType.Literal]: (node, _) => node.value,
-    [NodeType.MemberExpression]: (node, identifiers) => {
+    [NodeType.MemberExpression]: (node, identifiers, getIdentifier) => {
       const { object, property } = node;
+      
+      const identifierNode = object.type === NodeType.MemberExpression ? object.property : object;
+      const identifier = from[identifierNode.type](identifierNode, identifiers, true);
+
+      if (getIdentifier) return identifier;
   
-      if (identifiers[object.name] && from[property.type]) {
+      if (identifiers[identifier] && from[property.type]) {
         const classes = getClasses(from[property.type](property, identifiers));
-        classes.forEach(cl => identifiers[object.name].push(cl));
+        classes.forEach(cl => identifiers[identifier].push(cl));
       }
   
       return '';
@@ -59,18 +64,10 @@ export function setClassNames(propsObj: any, classPropName: string, identifiers:
   
   };
 
-  for(const prop of propsObj.properties) {
-    const { key, value } = prop;
-    
-    if (key.name !== classPropName) continue;
-    else if (!from[value.type]) break;
-
-    // if there is any className without any module identifier specified it will be added for each indentifier.
-    let used = getClasses(from[prop.value.type](prop.value, identifiers));
-    if (used.length) {
-      Object.values(identifiers).forEach(classes => used.forEach(cl => classes.push(cl)));
-    }
-
-    break;
+  if (!from[node.type]) return;
+  // if there is any className without any module identifier specified it will be added for each indentifier.
+  let used = getClasses(from[node.type](node, identifiers));
+  if (used.length) {
+    Object.values(identifiers).forEach(classes => used.forEach(cl => classes.push(cl)));
   }
 }

@@ -1,5 +1,6 @@
 export enum NodeType {
   ArrayExpression = 'ArrayExpression',
+  AssignmentExpression = 'AssignmentExpression',
   BinaryExpression = 'BinaryExpression',
   CallExpression = 'CallExpression',
   ConditionalExpression = 'ConditionalExpression',
