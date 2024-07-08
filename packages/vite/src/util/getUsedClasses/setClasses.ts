@@ -5,23 +5,23 @@ function getClasses(classes: string): string[] {
 }
 
 export function setClassNames(node: any, identifiers: Record<string, string[]>): void {
-  const from: Record<string, (node: any, identifiers: Record<string, string[]>, getIdentifier?: boolean) => string> = {
-    [NodeType.ArrayExpression]: (node, identifiers) => node.elements.map((e: any) => from[e.type] ? from[e.type](e, identifiers) : '').join(' '),
-    [NodeType.BinaryExpression]: (node, identifiers) => {
+  const from: Record<string, (node: any, identifiers: Record<string, string[]>, alt?: boolean) => string> = {
+    [NodeType.ArrayExpression]: (node, identifiers, alt) => node.elements.map((e: any) => from[e.type] ? from[e.type](e, identifiers, alt) : '').join(' '),
+    [NodeType.BinaryExpression]: (node, identifiers, alt) => {
       if (node.operator !== '+') return '';
       
-      let value = from[node.left.type] ? from[node.left.type](node.left, identifiers) : '.*';
-      value = `${value}${from[node.right.type] ? from[node.right.type](node.right, identifiers) : '.*'}`;
+      let value = from[node.left.type] ? from[node.left.type](node.left, identifiers, alt) : '.*';
+      value = `${value}${from[node.right.type] ? from[node.right.type](node.right, identifiers, alt) : '.*'}`;
       value = value === '.*.*' ? '' : value;
   
       return value;
     },
-    [NodeType.CallExpression]: (node, identifiers) => node.arguments.map((a: any) => from[a.type] ? from[a.type](a, identifiers) : '').join(' '),
-    [NodeType.ConditionalExpression]: (node, identifiers) => {
+    [NodeType.CallExpression]: (node, identifiers, alt) => node.arguments.map((a: any) => from[a.type] ? from[a.type](a, identifiers, alt) : '').join(' '),
+    [NodeType.ConditionalExpression]: (node, identifiers, alt) => {
       const { consequent, alternate } = node;
       let value = '';
-      value = from[consequent.value.type] ? from[consequent.value.type](consequent.value, identifiers) : '';
-      value = `${value}${from[alternate.value.type] ? `${value ? ' ': ''}${from[alternate.value.type](alternate.value, identifiers)}`: ''}`;
+      value = from[consequent.value.type] ? from[consequent.value.type](consequent.value, identifiers, alt) : '';
+      value = `${value}${from[alternate.value.type] ? `${value ? ' ': ''}${from[alternate.value.type](alternate.value, identifiers, alt)}`: ''}`;
       return value;
     },
     [NodeType.Identifier]: (node, _) => node.name,
@@ -41,27 +41,32 @@ export function setClassNames(node: any, identifiers: Record<string, string[]>):
   
       return '';
     },
-    [NodeType.ObjectExpression]: (node, identifiers) => {
+    [NodeType.ObjectExpression]: (node, identifiers, alt) => {
       const { properties } = node;
-      return properties.map((p: any) => from[p.type] ? from[p.type](p, identifiers) : '').join(' ');
+      return properties.map((p: any) => from[p.type] ? from[p.type](p, identifiers, alt) : '').join(' ');
     },
-    [NodeType.Property]: (node: any, identifier) => from[node.key.type] ? from[node.key.type](node.key, identifier) : '',
+    [NodeType.Property]: (node, identifier, alt) => from[node.key.type] ? from[node.key.type](node.key, identifier, alt) : '',
     [NodeType.TemplateElement]: (node, _) => node.value.cooked,
-    [NodeType.TemplateLiteral]: (node, identifiers) => {
-      const { quasis, expressions } = node;
+    [NodeType.TemplateLiteral]: (node, identifiers, tag) => {
       let value = '';
+
+      const { quasis, expressions } = node;
   
       for (let i = 0; i < quasis.length; i++) {
-        value = `${value}${quasis[i].value.cooked}`; // Add static part
+        if (!tag) {
+          value = `${value}${quasis[i].value.cooked}`; // Add static part
+        }
         
-        if (i < expressions.length) {
-          value += `${value}${from[expressions[i].type] ? from[expressions[i].type](expressions[i], identifiers): ''}`;
+        if ((i < expressions.length && !tag) || ((i < expressions.length && tag && /class=("|')$/.test(quasis[i].value.cooked)))) {
+          value = `${value}${from[expressions[i].type] ? `${from[expressions[i].type](expressions[i], identifiers)} ` : ''}`;
         }
       }
-  
+
       return value.replace(/ +/g, ' ');
     },
-  
+    [NodeType.TaggedTemplateExpression](node, identifiers) {
+      return from[NodeType.TemplateLiteral](node.quasi, identifiers, true);
+    },
   };
 
   if (!from[node.type]) return;

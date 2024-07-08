@@ -12,6 +12,8 @@ export enum NodeType {
   MemberExpression = 'MemberExpression',
   ObjectExpression = 'ObjectExpression',
   Property = 'Property',
+  TaggedTemplateExpression = 'TaggedTemplateExpression',
   TemplateElement = 'TemplateElement',
   TemplateLiteral = 'TemplateLiteral',
+  ThisExpression = 'ThisExpression',
 };
