@@ -1,21 +1,56 @@
 import { dirname, resolve } from 'node:path';
-import * as walk from 'acorn-walk';
+import { simple } from 'acorn-walk';
 import { getIdentifiers } from './getIdentifiers';
-import { getClassPropertyNode } from './getClassPropertyNode';
+import { getSpecifierNames } from './getSpecifierNames';
+import { getStrClasses } from './getStrClasses';
 import { setClassNames } from './setClasses';
 import { plugins } from './plugins';
 import { NodeType } from './constants';
 import { CSS_LANGS_RE } from '../../constants';
-import { UsedClasses } from './types';
 import { ModulesMap } from '../../types';
+import { UsedClasses, AstPlugins, Node, AstFunction } from './types';
 
-export function getUsedClasses(id: string, ast: any, modulesMap: ModulesMap): void {
+export async function getUsedClasses(id: string, ast: any, astPlugins: AstPlugins, modulesMap: ModulesMap): Promise<void> {
   const classes: UsedClasses = {};
-  let frameworkName = '';
-  const importNames: { [frameworkName: string]: { frameworkName: string, names: Set<string> } } = {};
+  const specifiers: { [frameworkName: string]: Set<string> } = {};
+  let hasClasses = false;
+  const queue: Promise<any>[] = [];
 
-  walk.simple(ast, {
-    [NodeType.ImportDeclaration](node: any) {
+  const runAstFunctions = (node: Node, astFn: { [name: string]: AstFunction }): void => {
+    Object.entries(astFn).forEach(async ([ name, fn ]) => {
+      if (!hasClasses || !specifiers[name] || !specifiers[name].size) return;
+
+      const response = fn(node, specifiers[name], id);
+
+      if (response instanceof Promise) queue.push(response);
+      
+      const value = await response;
+      
+      if (!value) return;
+
+      if (Array.isArray(value)) {
+        const [ filePath, classesStr ] = value;
+        
+        if (!filePath || !classesStr) return;
+        
+        const cls = getStrClasses(classesStr);
+        
+        if (!cls.length) return;
+        
+        classes[filePath] = classes[filePath] || { classes: [] };
+        cls.forEach(c => classes[filePath].classes.push(c));
+      } else {
+        const identifiers = getIdentifiers(classes);
+        setClassNames(value, identifiers);
+      }
+    });
+  }
+
+  const a = Object.entries(astPlugins).reduce((acc, [ type, astFn ]) => ({
+    ...acc,
+    ...type !== NodeType.ImportDeclaration ? { [type]: (node: Node) => runAstFunctions(node, astFn) } : {},
+  }), {
+    [NodeType.ImportDeclaration](node: Node) {
       const { value } = node.source;
 
       if (CSS_LANGS_RE.test(value)) {
@@ -28,82 +63,28 @@ export function getUsedClasses(id: string, ast: any, modulesMap: ModulesMap): vo
         const fileName = resolve(dir, value);
 
         classes[fileName] = { identifier, classes: [] };
+        hasClasses = true;
 
         return;
       }
 
-      plugins.forEach(plugin => {
-        if (!plugin.source.test(value)) return;
+      plugins.forEach(({ name, import: { source, specifier, defaultSpecifier } }) => {
+        if (!source.test(value)) return;
         
-        const { name, getImportNames } = plugin;
-        frameworkName = name;
-        
-        if (!getImportNames) return;
-
-        importNames[name] = importNames[name] || { frameworkName, names: new Set<string>() };
-        const specifierNames = getImportNames(node);
-        specifierNames.forEach(specifier => importNames[name].names.add(specifier));
+        specifiers[name] = specifiers[name] || new Set<string>();
+        const _specifiers = getSpecifierNames(node, specifier, defaultSpecifier);
+        _specifiers.forEach(specifier => specifiers[name].add(specifier));
       });
+
+      if (astPlugins[NodeType.ImportDeclaration]) runAstFunctions(node, astPlugins[NodeType.ImportDeclaration]);
     },
-    [NodeType.TaggedTemplateExpression](node: any) {
-      if (!Object.keys(classes).length) return;
+  } as any);
 
-      const importName = importNames[frameworkName].names.has(node.tag.name) ? node.tag.name : '';
+  simple(ast, a);
 
-      if (!importName) return;
+  if (!hasClasses) return;
 
-      const identifiers = getIdentifiers(classes);
-      setClassNames(node, identifiers);
-    },
-    [NodeType.AssignmentExpression](node: any) {
-      if (!Object.keys(classes).length) return;
-
-      let value: any;
-
-      switch(frameworkName) {
-        case 'svelte':
-          if(node.left.type === NodeType.Identifier && /_class_value$/.test(node.left.name)) {
-            value = node.right;
-          }
-        break;
-      }
-      
-      if(!value) return;
-
-      const identifiers = getIdentifiers(classes);
-      setClassNames(value, identifiers);
-    },
-    [NodeType.CallExpression](node: any) {
-      if (!Object.keys(classes).length) return;
-      if (!importNames[frameworkName]) return;
-
-      const importName = importNames[frameworkName].names.has(node.callee.name) ? node.callee.name : '';
-
-      if (!importName) return;
-
-      let value: any;
-
-      switch(frameworkName) {
-        case 'react':
-          value = getClassPropertyNode(node.arguments[1], 'className');
-          break;
-        case 'preact':
-        case 'vue':
-          value = getClassPropertyNode(node.arguments[1], 'class');
-        break;
-        case 'svelte':
-          value = node.arguments[1];
-        break;
-      }
-
-      if (!value) return;
-      
-      const identifiers = getIdentifiers(classes);
-      setClassNames(value, identifiers);
-    },
-  });
-
-  if (!Object.keys(classes).length) return;
+  if (queue.length) await Promise.all(queue);
 
   Object.entries(classes).forEach(([id, { classes }]) => {
     modulesMap[id] = modulesMap[id] || {};

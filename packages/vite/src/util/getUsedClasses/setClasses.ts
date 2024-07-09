@@ -1,8 +1,5 @@
 import { NodeType } from "./constants";
-
-function getClasses(classes: string): string[] {
-  return classes.trim().replace(/ +/g, ' ').split(' ').filter(c => c);
-}
+import { getStrClasses } from "./getStrClasses";
 
 export function setClassNames(node: any, identifiers: Record<string, string[]>): void {
   const from: Record<string, (node: any, identifiers: Record<string, string[]>, alt?: boolean) => string> = {
@@ -35,7 +32,7 @@ export function setClassNames(node: any, identifiers: Record<string, string[]>):
       if (getIdentifier) return identifier;
   
       if (identifiers[identifier] && from[property.type]) {
-        const classes = getClasses(from[property.type](property, identifiers));
+        const classes = getStrClasses(from[property.type](property, identifiers));
         classes.forEach(cl => identifiers[identifier].push(cl));
       }
   
@@ -71,7 +68,7 @@ export function setClassNames(node: any, identifiers: Record<string, string[]>):
 
   if (!from[node.type]) return;
   // if there is any className without any module identifier specified it will be added for each indentifier.
-  let used = getClasses(from[node.type](node, identifiers));
+  let used = getStrClasses(from[node.type](node, identifiers));
   if (used.length) {
     Object.values(identifiers).forEach(classes => used.forEach(cl => classes.push(cl)));
   }

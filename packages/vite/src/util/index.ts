@@ -1,4 +1,5 @@
 export { appendUtilities } from './appendUtilities';
 export { resolveOptions } from './resolveOptions';
 export { getModuleData } from './getModuleData';
-export { getUsedClasses } from './getUsedClasses';
+export { getUsedClasses, plugins } from './getUsedClasses';
+export type { Node, Plugin, AstPlugins } from './getUsedClasses';

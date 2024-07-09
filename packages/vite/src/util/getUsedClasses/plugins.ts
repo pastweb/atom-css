@@ -1,30 +1,93 @@
-import { getImportNames } from "./getImportNames";
+import { NodeType } from "./constants";
+import { getClassPropertyNode } from "./getClassPropertyNode";
 import { Plugin } from "./types";
 
 export const plugins: Plugin[] = [
   {
     name: 'lit',
-    source: /^lit$/,
-    getImportNames: (node: any) => getImportNames(node, /^html$/),
+    import: {
+      source: /^lit$/,
+      specifier: /^html$/,
+    },
+    ast: {
+      [NodeType.TaggedTemplateExpression](node, specifiers) {
+        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
+
+        if (!specifier) return;
+
+        return node;
+      },
+    },
   },
   {
     name: 'preact',
-    source: /^preact\/?(jsx-runtime|jsx-dev-runtime)?/,
-    getImportNames: (node: any) => getImportNames(node, /^createElement$|^jsx(s|DEV)?$/, 'createElement'),
+    import: {
+      source: /^preact\/?(jsx-runtime|jsx-dev-runtime)?/,
+      specifier: /^createElement$|^jsx(s|DEV)?$/,
+      defaultSpecifier: 'createElement',
+    },
+    ast: {
+      [NodeType.CallExpression](node, specifiers) {
+        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
+
+        if (!specifier) return;
+
+        return getClassPropertyNode(node.arguments[1], 'class');
+      }
+    },
   },
   {
     name: 'react',
-    source: /^react\/?(jsx-runtime|jsx-dev-runtime)?/,
-    getImportNames: (node: any) => getImportNames(node, /^createElement$|^jsx(s|DEV)?$/, 'createElement'),
+    import: {
+      source: /^react\/?(jsx-runtime|jsx-dev-runtime)?/,
+      specifier: /^createElement$|^jsx(s|DEV)?$/,
+      defaultSpecifier: 'createElement',
+    },
+    ast: {
+      [NodeType.CallExpression](node, specifiers) {
+        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
+
+        if (!specifier) return;
+
+        return getClassPropertyNode(node.arguments[1], 'className');
+      }
+    },
   },
   {
     name: 'vue',
-    source: /^vue$/,
-    getImportNames: (node: any) => getImportNames(node, /^h$|^create(Element)?VNode$/),
+    import: {
+      source: /^vue$/,
+      specifier: /^h$|^create(Element)?VNode$/,
+    },
+    ast: {
+      [NodeType.CallExpression](node, specifiers) {
+        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
+
+        if (!specifier) return;
+
+        return getClassPropertyNode(node.arguments[1], 'class');
+      }
+    },
   },
   {
     name: 'svelte',
-    source: /^svelte/,
-    getImportNames: (node: any) => getImportNames(node, /toggle_class/),
+    import: {
+      source: /^svelte/,
+      specifier: /toggle_class/,
+    },
+    ast: {
+      [NodeType.AssignmentExpression](node) {
+        if(node.left.type === NodeType.Identifier && /_class_value$/.test(node.left.name)) {
+          return node.right;
+        }
+      },
+      [NodeType.CallExpression](node, specifiers) {
+        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
+
+        if (!specifier) return;
+
+        return node.arguments[1];
+      }
+    },
   },
 ];
