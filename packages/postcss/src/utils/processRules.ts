@@ -60,5 +60,5 @@ export function processRules(
     modules[unscoped] = !modules[unscoped] ? `${scoped} ${utilityClassName}` : `${modules[unscoped]} ${utilityClassName}`;
   });
 
-  rules.forEach(rule=> removeRuleIfEmpty(scoped, unscoped, rule, modules, isAtRule));
+  rules.forEach(rule=> removeRuleIfEmpty(scoped, unscoped, rule, modules));
 }

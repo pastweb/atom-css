@@ -5,17 +5,14 @@ export function removeRuleIfEmpty(
   unscoped: string,
   rule: Rule | AtRule,
   modules: Record<string, string>,
-  isAtRule: boolean,
 ): void {
   const parent = rule.parent as Rule;
 
   if (!rule.nodes || rule.nodes.length) return;
 
-
-  if (!isAtRule) modules[unscoped] = modules[unscoped].replace(`${scoped} `, '');
   rule.remove();
 
   if (parent && parent.selector && parent.selector.startsWith('.')) {
-    removeRuleIfEmpty(scoped, unscoped, parent, modules, isAtRule);
+    removeRuleIfEmpty(scoped, unscoped, parent, modules);
   }
 }

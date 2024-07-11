@@ -7,7 +7,7 @@ export const VENDORS_RE = /^--(webkit|moz|ms|o)-/;
 
 export const DEFAULT_UTILITY_OPTIONS: ResolvedUtilityOptions = {
   mode: 'readable',
-  media: false,
-  container: false,
+  media: true,
+  container: true,
   output: true,
 };

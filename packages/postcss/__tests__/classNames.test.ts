@@ -18,7 +18,6 @@ describe('postcss-utility-modules - modules', () => {
     
     const output = await processCSS(input, {
       test: { include: /\.modules\.css$/ },
-      modules: true,
     }, 'any.css');
 
     expect(output).toBe(expectedOutput);
@@ -31,7 +30,6 @@ describe('postcss-utility-modules - modules', () => {
     
     const output = await processCSS(input, {
       test: { include: /\.modules\.css$/ },
-      modules: true,
     }, 'any.modules.css');
 
     expect(output).toBe(expectedOutput);
@@ -42,7 +40,7 @@ describe('postcss-utility-modules - modules', () => {
     const ID = getScope(input);
     const expectedOutput = `.example${ID} { color: red; }\n.example${ID}:hover { color: blue; }`;
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
@@ -51,7 +49,7 @@ describe('postcss-utility-modules - modules', () => {
     const input = ':global(.example) { color: red; }';
     const expectedOutput = '.example { color: red; }';
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
@@ -60,7 +58,7 @@ describe('postcss-utility-modules - modules', () => {
     const input = ':global .example { color: red; }';
     const expectedOutput = '.example { color: red; }';
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
@@ -70,7 +68,7 @@ describe('postcss-utility-modules - modules', () => {
     const ID = getScope(input);
     const expectedOutput = `.example${ID} { animation: 3s linear animation1${ID}, 3s ease-out 5s animation2${ID}; }\n@keyframes animation1${ID} { opacity: 1; }\n@keyframes animation2${ID} { opacity: 0; }`;
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
@@ -80,7 +78,7 @@ describe('postcss-utility-modules - modules', () => {
     const ID = getScope(input);
     const expectedOutput = `.example${ID} { animation: 3s linear animation1${ID}, 3s ease-out 5s animation2; }\n@keyframes animation1${ID} { opacity: 1; }\n@keyframes animation2 { opacity: 0; }`;
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
@@ -90,7 +88,7 @@ describe('postcss-utility-modules - modules', () => {
     const ID = getScope(input);
     const expectedOutput = `.example${ID} { animation-name: animation1${ID}; }\n@keyframes animation1${ID} { opacity: 1; }`;
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
@@ -100,7 +98,7 @@ describe('postcss-utility-modules - modules', () => {
     const ID = getScope(input);
     const expectedOutput = `.example${ID} { animation-name: animation1; }\n@keyframes animation1 { opacity: 1; }`;
     
-    const output = await processCSS(input, { modules: true });
+    const output = await processCSS(input);
 
     expect(output).toBe(expectedOutput);
   });
