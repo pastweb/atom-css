@@ -1,0 +1,17 @@
+{
+  "name": "rimmel",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --clearScreen=false --debug",
+    "build": "vite build --clearScreen=false --debug",
+    "preview": "vite preview --clearScreen=false --debug"
+  },
+  "devDependencies": {
+    "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "rimmel": "^1.1.1"
+  }
+}
