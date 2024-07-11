@@ -6,10 +6,6 @@ import { utilityModules } from '../../dist/index.mjs';
 export default defineConfig({
   plugins: [
     svelte(),
-    utilityModules({
-      utility: {
-        media: true,
-      },
-    }),
+    utilityModules(),
   ],
 })

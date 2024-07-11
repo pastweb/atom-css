@@ -8,10 +8,6 @@ export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
-    utilityModules({
-      utility: {
-        media: true,
-      },
-    }),
+    utilityModules(),
   ],
 })

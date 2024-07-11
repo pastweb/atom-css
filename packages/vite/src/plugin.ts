@@ -1,11 +1,11 @@
 import path from 'node:path';
 import postcss from 'postcss';
 import { postCssUtlityModules, Options } from '../../postcss';
-import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, plugins, AstPlugins } from './util';
+import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
-import { CSS_LANGS_RE, CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE, FRAMEWORK_TYPE } from './constants';
-import type { Plugin, ResolvedConfig } from 'vite';
-import { ViteCssUtilityModulesOptions, ModulesMap, ImporterData } from './types';
+import { CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE, FRAMEWORK_TYPE } from './constants';
+import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
+import { CssUtilityOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
 async function processCSS (input: string, opts: Options, filePath: string) {
@@ -13,23 +13,15 @@ async function processCSS (input: string, opts: Options, filePath: string) {
   return result.css;
 };
 
-export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plugin[] {
+export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
   let importers: Record<string, ImporterData> = {};
   let modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
   let opts: Options;
+  let astPlugins: AstPlugins;
   let config: ResolvedConfig;
+  let server: ViteDevServer;
   let isHMR: boolean;
-
-  const pluginsAst: AstPlugins = {};
-  
-  // TODO: add the plugin as usedClasses option
-  plugins.forEach(({ name, ast }) => {
-    Object.entries(ast).forEach(([type, fn]) => {
-      pluginsAst[type] = pluginsAst[type] || {};
-      pluginsAst[type][name] = fn;
-    });
-  });
 
   return [
     {
@@ -43,7 +35,9 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         // Ensure a new cache for every build (i.e. rebuilding in watch mode)
         importers = {};
         modulesMap = {};
-        opts = resolveOptions(options, modulesMap, config);
+        const { astPlugins: _astPlugins, ...rest } = resolveOptions(options, modulesMap, config);
+        opts = rest;
+        astPlugins = _astPlugins;
         const { include, exclude } = opts.test || {};
         testFilter = (include || exclude) && createFilter(include, exclude);
       },
@@ -64,6 +58,7 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
           }
         }
       },
+      configureServer(_server) { server = _server; },
     },
     {
       name: 'vite-plugin-utility-modules',
@@ -71,7 +66,32 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         if (!/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
           // console.log(id);
           // console.log(code);
-          await getUsedClasses(id, this.parse(code), pluginsAst, modulesMap);
+          const usedClasses = await getUsedClasses(id, code, astPlugins);
+          
+          if (!usedClasses) return null;
+
+          Object.entries(usedClasses).forEach(([ filePath, classes ]) => {
+            modulesMap[filePath] = modulesMap[filePath] || {};
+
+            if (isHMR && modulesMap[filePath].usedClasses && (JSON.stringify(classes) !== JSON.stringify(modulesMap[filePath].usedClasses))) {
+              const cssModule = server.moduleGraph.getModuleById(filePath);
+              
+              if (!cssModule) return;
+              
+              server.moduleGraph.invalidateModule(cssModule);
+              server.ws.send({
+                type: 'full-reload',
+                path: filePath,
+              });
+            }
+
+            modulesMap[filePath].usedClasses = classes;
+
+            console.log('----------- transform -----------')
+            console.log('id:', filePath);
+            console.log('reload:', modulesMap[filePath].reload);
+            console.log('--------------------------------')
+          });
 
           return null;
         } else if (testFilter && !testFilter(id)) return;
@@ -94,9 +114,8 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
           newCode = newCode.replace(new RegExp(`\\${scoped}`, 'g'), unscoped);
         });
         
-        // TODO: add the usedClasses option to the ops object
-        // const { usedClesses } = modulesMap[id];
-        const css = await processCSS(newCode, opts, id);
+        const { usedClasses } = modulesMap[id];
+        const css = await processCSS(newCode, { ...opts, usedClasses }, id);
         modulesMap[id].css = css;
         const map = this.getCombinedSourcemap();
         return { code: css, map };

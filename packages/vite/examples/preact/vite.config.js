@@ -6,15 +6,6 @@ import { utilityModules } from '../../dist/index.mjs';
 export default defineConfig({
   plugins: [
     preact(),
-    utilityModules({
-      scope: {
-        cssVariables: true,
-      },
-      modules: true,
-      utility: {
-        // mode: 'semireadable',
-        media: true,
-      },
-    }),
+    utilityModules(),
   ],
 })

@@ -12,9 +12,13 @@ export interface UsedClasses {
   };
 };
 
+export interface UsedClassesResult {
+  [fileName: string]: string[];
+}
+
 export type AstFunction = (node: Node, specifiers: Set<string>, fileName: string) => void | Node | [string, string] | Promise<void | Node | [string, string]>;
 
-export interface Plugin {
+export interface AstPlugin {
   name: string;
   import: {
     source: RegExp;

@@ -1,8 +1,8 @@
 import { NodeType } from "./constants";
 import { getClassPropertyNode } from "./getClassPropertyNode";
-import { Plugin } from "./types";
+import { AstPlugin } from "./types";
 
-export const plugins: Plugin[] = [
+export const plugins: AstPlugin[] = [
   {
     name: 'lit',
     import: {

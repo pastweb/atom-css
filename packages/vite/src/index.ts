@@ -1,2 +1,3 @@
 export { utilityModules } from './plugin';
-export type { ViteCssUtilityModulesOptions } from './types';
+export type { CssUtilityOptions } from './types';
+export type { AstPlugin } from './util';

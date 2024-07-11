@@ -1,3 +1,10 @@
+import { Options } from 'acorn';
+
+export const ACORN_OPTIONS: Options = {
+  sourceType: 'module',
+  ecmaVersion: 'latest',
+};
+
 export enum NodeType {
   ArrayExpression = 'ArrayExpression',
   AssignmentExpression = 'AssignmentExpression',

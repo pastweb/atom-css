@@ -1,16 +1,17 @@
 import { dirname, resolve } from 'node:path';
+import * as acorn from 'acorn';
 import { simple } from 'acorn-walk';
 import { getIdentifiers } from './getIdentifiers';
 import { getSpecifierNames } from './getSpecifierNames';
 import { getStrClasses } from './getStrClasses';
 import { setClassNames } from './setClasses';
 import { plugins } from './plugins';
-import { NodeType } from './constants';
+import { NodeType, ACORN_OPTIONS } from './constants';
 import { CSS_LANGS_RE } from '../../constants';
-import { ModulesMap } from '../../types';
-import { UsedClasses, AstPlugins, Node, AstFunction } from './types';
+import { UsedClasses, AstPlugins, Node, AstFunction, UsedClassesResult } from './types';
 
-export async function getUsedClasses(id: string, ast: any, astPlugins: AstPlugins, modulesMap: ModulesMap): Promise<void> {
+export async function getUsedClasses(id: string, code: string, astPlugins: AstPlugins): Promise<void | UsedClassesResult> {
+  const ast = acorn.parse(code, ACORN_OPTIONS);
   const classes: UsedClasses = {};
   const specifiers: { [frameworkName: string]: Set<string> } = {};
   let hasClasses = false;
@@ -86,8 +87,9 @@ export async function getUsedClasses(id: string, ast: any, astPlugins: AstPlugin
 
   if (queue.length) await Promise.all(queue);
 
-  Object.entries(classes).forEach(([id, { classes }]) => {
-    modulesMap[id] = modulesMap[id] || {};
-    modulesMap[id].usedClasses = classes;
-  });
+  return Object.entries(classes).reduce((acc, [ id, { classes } ]) => ({ ...acc, [ id ]: classes }), {} as UsedClassesResult);
+  // Object.entries(classes).forEach(([id, { classes }]) => {
+  //   modulesMap[id] = modulesMap[id] || {};
+  //   modulesMap[id].usedClasses = classes;
+  // });
 }
