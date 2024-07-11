@@ -5,12 +5,11 @@ import { getIdentifiers } from './getIdentifiers';
 import { getSpecifierNames } from './getSpecifierNames';
 import { getStrClasses } from './getStrClasses';
 import { setClassNames } from './setClasses';
-import { plugins } from './plugins';
 import { NodeType, ACORN_OPTIONS } from './constants';
 import { CSS_LANGS_RE } from '../../constants';
-import { UsedClasses, AstPlugins, Node, AstFunction, UsedClassesResult } from './types';
+import { UsedClasses, AstPlugin, AstPlugins, Node, AstFunction, UsedClassesResult } from './types';
 
-export async function getUsedClasses(id: string, code: string, astPlugins: AstPlugins): Promise<void | UsedClassesResult> {
+export async function getUsedClasses(id: string, code: string, plugins: AstPlugin[], astPlugins: AstPlugins): Promise<void | UsedClassesResult> {
   const ast = acorn.parse(code, ACORN_OPTIONS);
   const classes: UsedClasses = {};
   const specifiers: { [frameworkName: string]: Set<string> } = {};
@@ -71,7 +70,7 @@ export async function getUsedClasses(id: string, code: string, astPlugins: AstPl
 
       plugins.forEach(({ name, import: { source, specifier, defaultSpecifier } }) => {
         if (!source.test(value)) return;
-        
+
         specifiers[name] = specifiers[name] || new Set<string>();
         const _specifiers = getSpecifierNames(node, specifier, defaultSpecifier);
         _specifiers.forEach(specifier => specifiers[name].add(specifier));
@@ -88,8 +87,4 @@ export async function getUsedClasses(id: string, code: string, astPlugins: AstPl
   if (queue.length) await Promise.all(queue);
 
   return Object.entries(classes).reduce((acc, [ id, { classes } ]) => ({ ...acc, [ id ]: classes }), {} as UsedClassesResult);
-  // Object.entries(classes).forEach(([id, { classes }]) => {
-  //   modulesMap[id] = modulesMap[id] || {};
-  //   modulesMap[id].usedClasses = classes;
-  // });
 }

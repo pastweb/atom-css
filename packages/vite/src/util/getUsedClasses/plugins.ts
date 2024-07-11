@@ -11,7 +11,7 @@ export const plugins: AstPlugin[] = [
     },
     ast: {
       [NodeType.TaggedTemplateExpression](node, specifiers) {
-        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
+        const specifier = specifiers.has(node.tag.name) ? node.tag.name : '';
 
         if (!specifier) return;
 

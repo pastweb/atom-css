@@ -1,7 +1,7 @@
 import path from 'node:path';
 import postcss from 'postcss';
 import { postCssUtlityModules, Options } from '../../postcss';
-import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins } from './util';
+import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE, FRAMEWORK_TYPE } from './constants';
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
@@ -18,7 +18,8 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
   let modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
   let opts: Options;
-  let astPlugins: AstPlugins;
+  let astPlugins: AstPlugin[];
+  let resolvedAstPlugins: AstPlugins = {};
   let config: ResolvedConfig;
   let server: ViteDevServer;
   let isHMR: boolean;
@@ -38,6 +39,12 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
         const { astPlugins: _astPlugins, ...rest } = resolveOptions(options, modulesMap, config);
         opts = rest;
         astPlugins = _astPlugins;
+        _astPlugins.forEach(({ name, ast }) => {
+          Object.entries(ast).forEach(([type, fn]) => {
+            resolvedAstPlugins[type] = resolvedAstPlugins[type] || {};
+            resolvedAstPlugins[type][name] = fn;
+          });
+        });
         const { include, exclude } = opts.test || {};
         testFilter = (include || exclude) && createFilter(include, exclude);
       },
@@ -64,10 +71,8 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
       name: 'vite-plugin-utility-modules',
       async transform(code, id) {
         if (!/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
-          // console.log(id);
-          // console.log(code);
-          const usedClasses = await getUsedClasses(id, code, astPlugins);
-          
+          const usedClasses = await getUsedClasses(id, code, astPlugins, resolvedAstPlugins);
+
           if (!usedClasses) return null;
 
           Object.entries(usedClasses).forEach(([ filePath, classes ]) => {
@@ -86,20 +91,10 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
             }
 
             modulesMap[filePath].usedClasses = classes;
-
-            console.log('----------- transform -----------')
-            console.log('id:', filePath);
-            console.log('reload:', modulesMap[filePath].reload);
-            console.log('--------------------------------')
           });
 
           return null;
         } else if (testFilter && !testFilter(id)) return;
-        console.log('------- default modulesMap ---------------')
-        console.log(id);
-        console.log(modulesMap[id].usedClasses);
-        console.log('----------------------')
-        
         const match = code.match(CLASS_NAME_RE);
         
         if (!match) return;
