@@ -1,7 +1,7 @@
 import { FilterPattern } from '@rollup/pluginutils';
 
 export interface UtilityOptions {
-  mode?: 'readable' | 'semireadable' | 'coded';
+  mode?: 'readable' | 'semireadable' | 'encoded';
   media?: boolean;
   container?: boolean;
   output?: boolean;
@@ -30,16 +30,18 @@ export interface ResolvedVariablesOptions {
 
 export interface ScopeOptions {
   length?: number;
+  classNames?: boolean;
   cssVariables?: boolean | string | VariablesOptions;
 };
 
 export interface ResolvedScopeOptions {
   length: number;
+  classNames: boolean;
   cssVariables: ResolvedVariablesOptions;
 };
 
 export interface ResolvedUtilityOptions {
-  mode: 'readable' | 'semireadable' | 'coded';
+  mode: 'readable' | 'semireadable' | 'encoded';
   media: boolean;
   container: boolean
   output: boolean;
@@ -60,7 +62,7 @@ export interface Options {
     exclude?: FilterPattern,
   };
   scope?: number | ScopeOptions;
-  modules?: boolean;
+  usedClasses?: string[];
   utility?: boolean | UtilityOptions;
   getModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };
@@ -71,7 +73,7 @@ export interface ResolvedOptions {
     exclude?: FilterPattern,
   };
   scope: ResolvedScopeOptions;
-  modules: boolean;
+  usedClasses?: RegExp;
   utility: boolean | ResolvedUtilityOptions;
   getModules: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };

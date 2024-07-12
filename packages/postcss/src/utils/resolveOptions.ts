@@ -3,7 +3,7 @@ import { Options, ResolvedOptions, ResolvedUtilityOptions, ResolvedVariablesOpti
 
 export function resolveOptions(options: Options): ResolvedOptions {
   const lenght = !options.scope ? 8 : typeof options.scope === 'number' ? options.scope as number : (options.scope as ScopeOptions).length || 8;
-  const scope = typeof options.scope === 'object' ? { ...options.scope, lenght } : { lenght };
+  const scope = typeof options.scope === 'object' ? { classNames: true, ...options.scope, lenght } : { classNames: true, lenght };
 
   let key = '';
 
@@ -27,7 +27,9 @@ export function resolveOptions(options: Options): ResolvedOptions {
   return {
     test: options.test || {},
     scope: { ...scope, cssVariables } as ResolvedScopeOptions,
-    modules: !!options.modules,
+    ...options.usedClasses && options.usedClasses.length ? {
+      usedClasses: new RegExp(Array.from(new Set(options.usedClasses)).join('|')),
+    } : {},
     utility: options.utility ? typeof options.utility === 'boolean' ? DEFAULT_UTILITY_OPTIONS : {
       ...DEFAULT_UTILITY_OPTIONS,
       ...options.utility as Partial<ResolvedUtilityOptions>,

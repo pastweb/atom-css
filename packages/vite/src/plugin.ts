@@ -1,11 +1,11 @@
 import path from 'node:path';
 import postcss from 'postcss';
 import { postCssUtlityModules, Options } from '../../postcss';
-import { resolveOptions, getModuleData, appendUtilities } from './util';
+import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
-import { CSS_LANGS_RE, CLIENT_PUBLIC_PATH, CLASS_NAME_RE } from './constants';
-import type { Plugin, ResolvedConfig } from 'vite';
-import { ViteCssUtilityModulesOptions, ModulesMap, ImporterData } from './types';
+import { CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE, FRAMEWORK_TYPE } from './constants';
+import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
+import { CssUtilityOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
 async function processCSS (input: string, opts: Options, filePath: string) {
@@ -13,12 +13,15 @@ async function processCSS (input: string, opts: Options, filePath: string) {
   return result.css;
 };
 
-export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plugin[] {
+export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
   let importers: Record<string, ImporterData> = {};
   let modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
   let opts: Options;
+  let astPlugins: AstPlugin[];
+  let resolvedAstPlugins: AstPlugins = {};
   let config: ResolvedConfig;
+  let server: ViteDevServer;
   let isHMR: boolean;
 
   return [
@@ -33,7 +36,15 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         // Ensure a new cache for every build (i.e. rebuilding in watch mode)
         importers = {};
         modulesMap = {};
-        opts = resolveOptions(options, modulesMap, config);
+        const { astPlugins: _astPlugins, ...rest } = resolveOptions(options, modulesMap, config);
+        opts = rest;
+        astPlugins = _astPlugins;
+        _astPlugins.forEach(({ name, ast }) => {
+          Object.entries(ast).forEach(([type, fn]) => {
+            resolvedAstPlugins[type] = resolvedAstPlugins[type] || {};
+            resolvedAstPlugins[type][name] = fn;
+          });
+        });
         const { include, exclude } = opts.test || {};
         testFilter = (include || exclude) && createFilter(include, exclude);
       },
@@ -44,7 +55,9 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
           if (!resolved) return;
           
           const { id: resolvedId } = resolved;
-          modulesMap[resolvedId] = { isEntry, importedCss: new Set() };
+          modulesMap[resolvedId] = modulesMap[resolvedId] || {};
+          modulesMap[resolvedId].isEntry = isEntry;
+          modulesMap[resolvedId].importedCss = new Set();
           
           if (importer) {
             modulesMap[resolvedId].importer = importer;
@@ -52,12 +65,36 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
           }
         }
       },
+      configureServer(_server) { server = _server; },
     },
     {
       name: 'vite-plugin-utility-modules',
       async transform(code, id) {
-        if (testFilter && !testFilter(id)) return;
-        
+        if (!/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
+          const usedClasses = await getUsedClasses(id, code, astPlugins, resolvedAstPlugins);
+
+          if (!usedClasses) return null;
+
+          Object.entries(usedClasses).forEach(([ filePath, classes ]) => {
+            modulesMap[filePath] = modulesMap[filePath] || {};
+
+            if (isHMR && modulesMap[filePath].usedClasses && (JSON.stringify(classes) !== JSON.stringify(modulesMap[filePath].usedClasses))) {
+              const cssModule = server.moduleGraph.getModuleById(filePath);
+              
+              if (!cssModule) return;
+              
+              server.moduleGraph.invalidateModule(cssModule);
+              server.ws.send({
+                type: 'full-reload',
+                path: filePath,
+              });
+            }
+
+            modulesMap[filePath].usedClasses = classes;
+          });
+
+          return null;
+        } else if (testFilter && !testFilter(id)) return;
         const match = code.match(CLASS_NAME_RE);
         
         if (!match) return;
@@ -67,11 +104,13 @@ export function utilityModules(options: ViteCssUtilityModulesOptions = {}): Plug
         const classes = Array.from(new Set(match.filter(m => isNaN(parseInt(m.charAt(1))))));
         // remove de scope if present
         classes.forEach(scoped => {
+          // TODO: change the regexp to match just 1 _ at the scope beginning
           const unscoped = scoped.replace(/^\._/, '.').replace(/_\w+$/, '');
           newCode = newCode.replace(new RegExp(`\\${scoped}`, 'g'), unscoped);
         });
         
-        const css = await processCSS(newCode, opts, id);
+        const { usedClasses } = modulesMap[id];
+        const css = await processCSS(newCode, { ...opts, usedClasses }, id);
         modulesMap[id].css = css;
         const map = this.getCombinedSourcemap();
         return { code: css, map };

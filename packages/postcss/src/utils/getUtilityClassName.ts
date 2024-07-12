@@ -38,7 +38,7 @@ export function getUtilityClassName(
       if (isAtRule) className = `${_name}[_${generateHash(scopeLength, _params, prop, value)}]`;
       else className = `${prop}[_${generateHash(scopeLength, value)}]`;
     break;
-    case 'coded':
+    case 'encoded':
       if (isAtRule) className = `_${generateHash(scopeLength, _name, _params, prop, value)}`;
       else className = `_${generateHash(scopeLength, prop, value)}`;
     break;

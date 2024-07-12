@@ -1,0 +1,21 @@
+.box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 10px;
+  color: white;
+  background-color: red;
+}
+
+.boxHeader {
+  padding: 5px;
+  background-color: white;
+  color: green;
+}
+
+.boxFooter {
+  padding: 5px;
+  background-color: blue;
+  color: yellow;
+}

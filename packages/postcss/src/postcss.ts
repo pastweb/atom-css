@@ -1,7 +1,7 @@
 import { createFilter } from '@rollup/pluginutils';
 import { resolveOptions, generateHash, countAncestors, processRules } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
-import type { PluginCreator, Rule, AtRule } from 'postcss';
+import type { PluginCreator, Rule, AtRule, Root } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
 
 // Create the plugin
@@ -35,8 +35,9 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       // Set of classNames already processed for the utility functionality
       // const processedClasses: Set<string> = new Set();
       const rules: Record<string, { ancestors: number, rule: Rule | AtRule}[]> = {};
+      const unusedAnimations: Set<string> = new Set();
 
-      if (!opts.modules && opts.scope.cssVariables.key && opts.utility) return;
+      if (!opts.scope.classNames && opts.scope.cssVariables.key && opts.utility) return;
       // Generate a unique suffix for this file
       const suffix = getScope(css);
 
@@ -60,15 +61,66 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         } else {
           const scopedVars = opts.scope.cssVariables.key && hasScopedVars;
 
-          if (opts.modules || scopedVars) {
+          if (opts.usedClasses && rule.selector.startsWith('.')) {
+            const className = rule.selector.substring(1);
+
+            if (!opts.usedClasses.test(className)) {
+              // remove unused classes and animations
+              rule.walkDecls(decl => {
+                const { prop, value } = decl;
+                
+                if (!/^animation(-name)?$/.test(prop)) return;
+                
+                let animations: string[] = [];
+                
+                if (prop === 'animation-name') animations.push(value);
+                else animations = value.split(',').map(a => a.trim().match(ANIMATION_NAME_RE)![0]);
+
+                animations.forEach(a => unusedAnimations.add(a));
+              });
+
+              let parent = rule.parent || null;
+              rule.remove();
+
+              while (parent) {
+                if (parent.nodes && parent.nodes.length) break;
+                const r = parent;
+                parent = r.parent as any || null;
+                r.remove();
+              }
+
+              return;
+            } else {
+              // remove animations from unusedAnimations for used classes
+              rule.walkDecls(decl => {
+                const { prop, value } = decl;
+
+                if (!/^animation(-name)?$/.test(prop)) return;
+
+                let animations: string[] = [];
+
+                if (prop === 'animation-name') animations.push(value);
+                else animations = value.split(',').map(a => a.trim().match(ANIMATION_NAME_RE)![0]);
+
+                animations.forEach(a => {
+                  if (GLOBAL_ANIMATION_RE.test(a) && !opts.scope.classNames) {
+                    const cleaned = a.replace(GLOBAL_ANIMATION_RE, '');
+                    decl.value = decl.value.replace(new RegExp(a.replace('(', '\\(').replace(')', '\\)')), cleaned);
+                  } else unusedAnimations.delete(a);
+                });
+              });
+            }
+          }
+
+          if (opts.scope.classNames || scopedVars) {
             rule.walkDecls(decl => {
-              if (decl.prop === 'animation' || decl.prop === 'animation-name') {
+              if (/^animation(-name)?$/.test(decl.prop)) {
                 let animations: string[] = [];
                 
                 if (decl.prop === 'animation') {
-                  animations = decl.value
-                    .split(',')
-                    .map(a => a.trim().match(ANIMATION_NAME_RE)![0])
+                  animations = decl.value.split(',')
+                    .map(a => a.trim()
+                    .match(ANIMATION_NAME_RE)![0]);
                 } else if (decl.prop === 'animation-name') {
                   animations.push(decl.value);
                 }
@@ -96,7 +148,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             });
           }
 
-          if (opts.modules) {
+          if (opts.scope.classNames) {
             // Add a suffix to each class name if not preceded by :global
             rule.selectors = rule.selectors.map(selector =>
               selector.replace(CLASS_NAME_RE, (match, prefix, globalContent, globalClassName, className) => {
@@ -113,21 +165,33 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
 
           // store rules must be processed for utility
           if (opts.utility) {
-            if (!rule.selector.startsWith('.')) return;
-
+            if (!rule.parent || !rule.selector.startsWith('.')) return;
+            
+            const ancestors = countAncestors(rule);
+            
+            if (ancestors === null) return;
+            
             rules[rule.selector] = rules[rule.selector] || [];
-            rules[rule.selector].push({ ancestors: countAncestors(rule), rule });
+            rules[rule.selector].push({ ancestors, rule });
           }
         }
       });
 
       root.walkAtRules(rule => {
-        // Apply suffixed names to keyframes rules
-        if (opts.modules && rule.name === 'keyframes' && hasKeyframes) {
-          const originalName = rule.params;
-          if (!keyframes[originalName]) return;
-          rule.params = keyframes[originalName];
-          return;
+        if (rule.name === 'keyframes') {
+          const keyframesName = rule.params;
+
+          // remove keyframes if marked as unused
+          if (unusedAnimations.has(keyframesName)) {
+            rule.remove();
+            return;
+          }
+
+          // Apply suffixed names to keyframes rules
+          if (opts.scope.classNames && hasKeyframes && keyframes[keyframesName]) {
+            rule.params = keyframes[keyframesName];
+            return;
+          }
         }
 
         if (
@@ -140,9 +204,12 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           if (!ancestors) return;
           
           const { media, container } = opts.utility as ResolvedUtilityOptions;
+          let processRule = false;
           
-          if (media && rule.name !== 'media') return;
-          if (container && rule.name !== 'container') return;
+          if (media && rule.name === 'media') processRule = true;
+          if (container && rule.name === 'container') processRule = true;
+
+          if (!processRule) return;
           
           rules[rule.params] = rules[rule.params] || [];
           rules[rule.params].push({ ancestors, rule });
@@ -164,7 +231,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             if (ancestors > lower.ancestors) break;
             selected.push(rule);
           }
-          
+
           const isAtRule = lower.rule.type === 'atrule';
           const selector = isAtRule ?
             ((lower.rule as AtRule).parent as Rule).selector :
@@ -181,7 +248,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         }
       }
 
-      if (opts.modules || opts.utility) {
+      if (opts.scope.classNames || opts.utility) {
         await opts.getModules(filePath, modules);
       }
     },
