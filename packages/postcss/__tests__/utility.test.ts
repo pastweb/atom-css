@@ -39,7 +39,7 @@ describe('css-utility-modules - utility', () => {
   });
 
   it('should generate readable className utilies by default correctly even in utilityModules', async () => {
-    const input = `.class1 { color: red; background-color: white; .class2 { color: blue; } }`;
+    const input = `.class1 { color: red; background-color: white; .class2 { color: blue; } .class3 { color: blue; } }`;
     const ID = getScope(input);
     const expectedOutput = `.color\\[_blue\\] { color: blue\n}\n.color\\[_red\\] { color: red\n}\n.background-color\\[_white\\] { background-color: white\n}`;
     
@@ -66,9 +66,10 @@ describe('css-utility-modules - utility', () => {
     expect(output).toBe(expectedOutput);
     expect(getModules).toHaveBeenCalledTimes(1);
     expect(cssFileName).toBe('unknown');
-    expect(Object.keys(cssModules).length).toBe(2);
+    expect(Object.keys(cssModules).length).toBe(3);
     expect(cssModules.class1).toBe(`class1${ID} color[_red] background-color[_white]`);
     expect(cssModules.class2).toBe(`class2${ID} color[_blue]`);
+    expect(cssModules.class3).toBe(`class3${ID} color[_blue]`);
     expect(getUtilityModules).toHaveBeenCalledTimes(1);
     expect(utilityFileName).toBe('unknown');
     expect(Object.keys(utilityModules).length).toBe(3);
