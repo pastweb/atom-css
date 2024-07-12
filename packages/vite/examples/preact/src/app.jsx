@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks'
 import preactLogo from './assets/preact.svg'
 import viteLogo from '/vite.svg'
 import { Panel } from './components/Panel';
+import { Box } from './components/Box';
 import './app.css'
 
 export function App() {
@@ -30,6 +31,10 @@ export function App() {
         Click on the Vite and Preact logos to learn more
       </p>
       <Panel />
+      <br />
+      <Box>
+        the classes module destructuring it works
+      </Box>
     </>
   )
 }

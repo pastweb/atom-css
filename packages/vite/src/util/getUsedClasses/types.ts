@@ -7,7 +7,7 @@ export interface Node {
 
 export interface UsedClasses {
   [fileName: string]: {
-    identifier?: string;
+    identifiers: Set<string>;
     classes: string[];
   };
 };

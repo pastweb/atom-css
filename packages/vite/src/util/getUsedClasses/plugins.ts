@@ -4,22 +4,6 @@ import { AstPlugin } from "./types";
 
 export const plugins: AstPlugin[] = [
   {
-    name: 'lit',
-    import: {
-      source: /^lit$/,
-      specifier: /^html$/,
-    },
-    ast: {
-      [NodeType.TaggedTemplateExpression](node, specifiers) {
-        const specifier = specifiers.has(node.tag.name) ? node.tag.name : '';
-
-        if (!specifier) return;
-
-        return node;
-      },
-    },
-  },
-  {
     name: 'preact',
     import: {
       source: /^preact\/?(jsx-runtime|jsx-dev-runtime)?/,

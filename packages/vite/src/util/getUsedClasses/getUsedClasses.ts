@@ -54,15 +54,22 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
       const { value } = node.source;
 
       if (CSS_LANGS_RE.test(value)) {
-        const [ specifier ] = node.specifiers;
+        if (!node.specifiers.lenght) return;
 
-        if (!specifier || specifier.type !== NodeType.ImportDefaultSpecifier) return;
-
-        const { name: identifier } = specifier.local;
         const dir = dirname(id);
         const fileName = resolve(dir, value);
+        classes[fileName] = { identifiers: new Set(), classes: [] };
+        node.specifiers.forEach((specifier: Node) => classes[fileName].identifiers.add(specifier.local));
+        
+        // const [ specifier ] = node.specifiers;
 
-        classes[fileName] = { identifier, classes: [] };
+        // if (!specifier || specifier.type !== NodeType.ImportDefaultSpecifier) return;
+
+        // const { name: identifier } = specifier.local;
+        // const dir = dirname(id);
+        // const fileName = resolve(dir, value);
+
+        // classes[fileName] = { identifier, classes: [] };
         hasClasses = true;
 
         return;

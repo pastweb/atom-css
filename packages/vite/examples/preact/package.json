@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --clearScreen=false --debug",
-    "build": "vite build --clearScreen=false --debug",
+    "dev": "vite --clearScreen=false --debug --force",
+    "build": "vite build --clearScreen=false --debug --force",
     "preview": "vite preview"
   },
   "dependencies": {
