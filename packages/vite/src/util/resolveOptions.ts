@@ -16,7 +16,9 @@ export function resolveOptions(options: CssUtilityOptions, modulesMap: ModulesMa
       modulesMap[filePath].modules = modules;
     },
     astPlugins,
-    ...options.utility ? {
+    ...typeof options.utility === 'boolean' && !options.utility ? { utility: false } :
+      typeof options.utility === 'object' ?
+     {
       utility: {
         ...options.utility,
         mode: options.utility.mode ? options.utility.mode : mode === 'development' ? 'readable' : 'encoded',
@@ -29,6 +31,11 @@ export function resolveOptions(options: CssUtilityOptions, modulesMap: ModulesMa
     } : {
       utility: {
         mode: mode === 'development' ? 'readable' : 'encoded',
+        output: false,
+        getUtilityModules(filePath, modules) {
+          modulesMap[filePath] = modulesMap[filePath] || {};
+          modulesMap[filePath].utilities = modules;
+        },
       },
     },
   };

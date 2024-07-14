@@ -13,7 +13,7 @@ export interface UtilityOptions {
     include?: FilterPattern,
     exclude?: FilterPattern,
   }
-  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void;
+  getUtilityModules?: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };
 
 export interface VariablesOptions {

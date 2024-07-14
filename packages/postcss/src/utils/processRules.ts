@@ -43,22 +43,21 @@ export function processRules(
   Object.entries(propertyDeclarations).forEach(([ propName, properties ]) => {
     const values = Object.entries(properties);
     const utilityClassName = getUtilityClassName(mode, propName, values[0][1], scopeLength, isAtRule ? first : undefined);
-
-    if (!utilityModules[utilityClassName]) {
-      const utilityRule = postcss.rule({ selector: `.${utilityClassName.replace(/\[/g, '\\[').replace(/\]/g, '\\]')}` });
-      if (isAtRule) utilityRule.append(atRule as AtRule);
-
-      for(const [prop, value] of values) {
-        const decl = postcss.decl({ prop, value, raws: { before: ' ', between: ': ' } });
-        
-        if (isAtRule) (atRule as AtRule).append(decl);
-        else utilityRule.append(decl);
-      }
-      
-      utilityModules[utilityClassName] = utilityRule;
-    }
-
     modules[unscoped] = !modules[unscoped] ? `${scoped} ${utilityClassName}` : `${modules[unscoped]} ${utilityClassName}`;
+
+    if (utilityModules[utilityClassName]) return;
+
+    const utilityRule = postcss.rule({ selector: `.${utilityClassName.replace(/\[/g, '\\[').replace(/\]/g, '\\]')}` });
+    if (isAtRule) utilityRule.append(atRule as AtRule);
+
+    for(const [prop, value] of values) {
+      const decl = postcss.decl({ prop, value, raws: { before: ' ', between: ': ' } });
+      
+      if (isAtRule) (atRule as AtRule).append(decl);
+      else utilityRule.append(decl);
+    }
+    
+    utilityModules[utilityClassName] = utilityRule;
   });
 
   rules.forEach(rule=> removeRuleIfEmpty(scoped, unscoped, rule, modules));
