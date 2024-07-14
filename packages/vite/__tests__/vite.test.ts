@@ -1,23 +1,16 @@
 import fs from 'node:fs';
 import { resolve } from 'node:path';
-import { utilityModules, ViteCssUtilityModulesOptions } from '../src';
+import { utilityModules, CssUtilityOptions } from '../src';
 import * as vite from 'vite';
 
 const { readFile } = fs.promises;
 
-const cleanCode = (bufferString: string | Uint8Array, isString = true): string => {
-  if (isString) {
-    let code = new TextEncoder().encode(bufferString as string);
-    return new TextDecoder("utf-8").decode(code);
-  }
-  
-  // if (typeof code === 'string') return code;
-  // return JSON.stringify(bufferString as string).slice(1, -3).replace(/\\n/g, '\n').replace(/\\$/, '');
+const cleanCode = (bufferString: string | Uint8Array): string => {
   const code = new TextEncoder().encode(bufferString as string);
   return new TextDecoder("utf-8").decode(code);
 };
 
-async function viteBuild(fileName: string, options: ViteCssUtilityModulesOptions): Promise<(vite.Rollup.OutputChunk | vite.Rollup.OutputAsset)[]> {
+async function viteBuild(fileName: string, options: CssUtilityOptions): Promise<(vite.Rollup.OutputChunk | vite.Rollup.OutputAsset)[]> {
   const { output } = await vite.build({
     plugins: [ utilityModules(options) ],
     build: {
@@ -38,7 +31,7 @@ describe('viteUtilityModules', () => {
 
     const files = await viteBuild('index.css', { utility: { mode: 'readable' } });
     const [ file ] = files;
-    const result = cleanCode((file as unknown as vite.Rollup.OutputAsset).source, false);
+    const result = cleanCode((file as unknown as vite.Rollup.OutputAsset).source);
     
     expect(files.length).toBe(1);
     expect(result).toBe(expectedOutput);
@@ -68,9 +61,12 @@ describe('viteUtilityModules', () => {
 .background-color\\[_white\\] { background-color: white
 }`;
 
-    const files = await viteBuild('index.module.css', { utility: { mode: 'readable' } });
+    const files = await viteBuild('index.module.css', {
+      scope: { classNames: false },
+      utility: { mode: 'readable' },
+    });
     const [ css ] = files;
-    const result = cleanCode((css as unknown as vite.Rollup.OutputAsset).source, false);
+    const result = cleanCode((css as unknown as vite.Rollup.OutputAsset).source);
 
     expect(files.length).toBe(1);
     expect(result).toBe(expectedOutput);
@@ -104,16 +100,19 @@ describe('viteUtilityModules', () => {
 const classes = {
   "panel-footer": "panel-footer background-color[_lightgrey]",
   "panel-header": "panel-header background-color[_grey]",
-  "panel-box": "padding[_1em] font-size[_1em]",
+  "panel-box": "panel-box padding[_1em] font-size[_1em]",
   panel
 };
 console.log(classes);
 `;
 
-    const files = await viteBuild('index.module.js', { utility: { mode: 'readable' } });
+    const files = await viteBuild('index.module.js', {
+      scope: { classNames: false },
+      utility: { mode: 'readable' },
+    });
     const [ jsFile, cssFile ] = files;
     const js = cleanCode((jsFile as unknown as vite.Rollup.OutputChunk).code);
-    const css = cleanCode((cssFile as unknown as vite.Rollup.OutputAsset).source, false);
+    const css = cleanCode((cssFile as unknown as vite.Rollup.OutputAsset).source);
     
     
     expect(files.length).toBe(2);
