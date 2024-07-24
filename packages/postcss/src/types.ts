@@ -61,6 +61,7 @@ export interface Options {
     include?: FilterPattern,
     exclude?: FilterPattern,
   };
+  selectors?: 'flat' | 'nested';
   scope?: number | ScopeOptions;
   usedClasses?: string[];
   utility?: boolean | UtilityOptions;
@@ -72,6 +73,7 @@ export interface ResolvedOptions {
     include?: FilterPattern,
     exclude?: FilterPattern,
   };
+  selectors: 'flat' | 'nested';
   scope: ResolvedScopeOptions;
   usedClasses?: RegExp;
   utility: boolean | ResolvedUtilityOptions;

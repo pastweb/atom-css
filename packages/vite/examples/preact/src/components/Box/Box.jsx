@@ -1,4 +1,4 @@
-import { box, boxHeader, boxFooter } from './Box.module.css';
+import { box, boxHeader, boxFooter } from './Box.module.scss';
 
 export function Box({ children }) {
   return (

@@ -26,6 +26,7 @@ export function resolveOptions(options: Options): ResolvedOptions {
 
   return {
     test: options.test || {},
+    selectors: options.selectors || 'nested',
     scope: { ...scope, cssVariables } as ResolvedScopeOptions,
     ...options.usedClasses && options.usedClasses.length ? {
       usedClasses: new RegExp(Array.from(new Set(options.usedClasses)).join('|')),

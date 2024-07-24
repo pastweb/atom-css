@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks'
 import clsx from 'clsx';
-import classes from './Panel.module.css';
+import classes from './Panel.module.scss';
 
 export default function Panel() {
     const [isOpen, setIsOpen] = useState(false);

@@ -26,7 +26,7 @@ describe('postcss-utility-modules - modules', () => {
   it('should add suffixes to class names for any.modules.css', async () => {
     const input = '.example { color: red; }\n.example:hover { color: blue; }';
     const ID = getScope(input);
-    const expectedOutput = `.example${ID} { color: red; }\n.example${ID}:hover { color: blue; }`;
+    const expectedOutput = `.example${ID} { color: red;\n&:hover { color: blue; } }`;
     
     const output = await processCSS(input, {
       test: { include: /\.modules\.css$/ },
@@ -40,22 +40,13 @@ describe('postcss-utility-modules - modules', () => {
     const ID = getScope(input);
     const expectedOutput = `.example${ID} { color: red; }\n.example${ID}:hover { color: blue; }`;
     
-    const output = await processCSS(input);
+    const output = await processCSS(input, { selectors: 'flat' });
 
     expect(output).toBe(expectedOutput);
   });
 
   it('should handle :global(.example) correctly', async () => {
     const input = ':global(.example) { color: red; }';
-    const expectedOutput = '.example { color: red; }';
-    
-    const output = await processCSS(input);
-
-    expect(output).toBe(expectedOutput);
-  });
-
-  it('should handle :global correctly', async () => {
-    const input = ':global .example { color: red; }';
     const expectedOutput = '.example { color: red; }';
     
     const output = await processCSS(input);

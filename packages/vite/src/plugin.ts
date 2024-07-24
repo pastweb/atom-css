@@ -28,6 +28,15 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
     {
       name: 'vite-plugin-utility-modules-pre',
       enforce: 'pre',
+      config() {
+        return {
+          css: {
+            modules: {
+              generateScopedName: name => name,
+            }
+          },
+        };
+      },
       configResolved(_config) {
         isHMR = _config.command === 'serve' && _config.mode !== 'production';
         config = _config;
@@ -95,22 +104,18 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
 
           return null;
         } else if (testFilter && !testFilter(id)) return;
+
+        console.log('--------- id ---------')
+        console.log(id)
+        console.log('--------- code ---------')
+        console.log(code)
         const match = code.match(CLASS_NAME_RE);
         
         if (!match) return;
 
         // use the code parsed from the vite:css-plugin for prePsessors and url resolution
-        let newCode = code;
-        const classes = Array.from(new Set(match.filter(m => isNaN(parseInt(m.charAt(1))))));
-        // remove de scope if present
-        classes.forEach(scoped => {
-          // TODO: change the regexp to match just 1 _ at the scope beginning
-          const unscoped = scoped.replace(/^\._/, '.').replace(/_\w+$/, '');
-          newCode = newCode.replace(new RegExp(`\\${scoped}`, 'g'), unscoped);
-        });
-        
         const { usedClasses } = modulesMap[id];
-        const css = await processCSS(newCode, { ...opts, usedClasses }, id);
+        const css = await processCSS(code, { ...opts, usedClasses }, id);
         modulesMap[id].css = css;
         const map = this.getCombinedSourcemap();
         return { code: css, map };

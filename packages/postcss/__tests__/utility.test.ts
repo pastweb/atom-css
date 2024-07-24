@@ -7,13 +7,13 @@ const getScope = (...args: string[]) => `_${generateHash(8, ...args)}`;
 
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([postCssUtlityModules(opts)]).process(input, { from: undefined });
+  const result = await postcss([ postCssUtlityModules(opts) ]).process(input, { from: undefined });
   return result.css;
 };
 
 describe('css-utility-modules - utility', () => {
   it('should generate readable className utilies by default correctly', async () => {
-    const input = `.class1 { color: red; background-color: white; .class2 { color: blue; } }`;
+    const input = `.class1 { color: red; background-color: white; }.class1 .class2 { color: blue; }`;
     const ID = getScope(input);
     const expectedOutput = `.color\\[_blue\\] { color: blue\n}\n.color\\[_red\\] { color: red\n}\n.background-color\\[_white\\] { background-color: white\n}`;
 
@@ -224,7 +224,7 @@ describe('css-utility-modules - utility', () => {
     const whiteId = getScope('background-color', 'white');
     const blueId = getScope('color', 'blue');
 
-    const expectedOutput = `.class1${ID} { div { margin: 0; } }`;
+    const expectedOutput = `.class1${ID} div { margin: 0 }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -267,7 +267,7 @@ describe('css-utility-modules - utility', () => {
   it('should not generate className utilies just for classes more specific selector.', async () => {
     const input = `.panel { background-color: white; .panel-box { padding: 1em; font-size: 1em; } .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } } }`;
 
-    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }`;
+    const expectedOutput = `.panel { .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -314,7 +314,7 @@ describe('css-utility-modules - utility', () => {
   it('should not generate className utilies for classes more specific selector even in different order.', async () => {
     const input = `.panel { background-color: white; .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-box { padding: 1em; font-size: 1em; }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } } }`;
 
-    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }`;
+    const expectedOutput = `.panel { .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -361,7 +361,7 @@ describe('css-utility-modules - utility', () => {
   it('should not generate className utilies for proprety classes overwritten.', async () => {
     const input = `.panel { background-color: white; .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-box { padding: 1em; font-size: 1em; }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } }.panel-box { padding: 2em; font-size: 1em; } }`;
 
-    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }`;
+    const expectedOutput = `.panel { .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -409,7 +409,7 @@ describe('css-utility-modules - utility', () => {
   it('should process vendors custom properties and generate utility classes.', async () => {
     const input = `.panel { background-color: white; transition: all 4s ease; --webkit-transition: all 4s ease; --moz-transition: all 4s ease; --ms-transition: all 4s ease; --o-transition: all 4s ease; .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-box { padding: 1em; font-size: 1em; }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } }.panel-box { padding: 2em; font-size: 1em; } }`;
 
-    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }`;
+    const expectedOutput = `.panel { .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -462,7 +462,7 @@ describe('css-utility-modules - utility', () => {
   it('should generate className utilies just for nested media queries.', async () => {
     const input = `.panel { background-color: white; @media (max-width: 300px) { background-color: green; }.panel-box { padding: 1em; font-size: 1em; } .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
 
-    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
+    const expectedOutput = `.panel { .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -510,7 +510,7 @@ describe('css-utility-modules - utility', () => {
   it('should generate className utilies containers.', async () => {
     const input = `.panel { background-color: white; @container { background-color: green; }.panel-box { padding: 1em; font-size: 1em; } .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
 
-    const expectedOutput = `.panel { .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
+    const expectedOutput = `.panel { .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};
@@ -558,7 +558,7 @@ describe('css-utility-modules - utility', () => {
   it('should not generate className filtered properties and values.', async () => {
     const input = `.panel { --panel-width: 100%; width: var(--panel-width); background-color: white; @container { background-color: green; }.panel-box { padding: 1em; font-size: 1em; } .panel-header { background-color: grey; .panel-box { padding: 0.5em; } }.panel-footer { background-color: lightgrey; .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
 
-    const expectedOutput = `.panel { --panel-width: 100%; width: var(--panel-width); .panel-header { .panel-box { padding: 0.5em; } }.panel-footer { .panel-box { padding: 0.3em; } } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
+    const expectedOutput = `.panel { --panel-width: 100%; width: var(--panel-width); .panel-header .panel-box { padding: 0.5em }.panel-footer .panel-box { padding: 0.3em } }@media (max-width: 1250px) { .panel { background-color: red; } }`;
     
     let cssFileName: string = '';
     let cssModules: Record<string, string> = {};

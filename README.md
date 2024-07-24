@@ -7,11 +7,11 @@ for handle CSS modules, scoped CSS variables and utilities on the fly in the CSS
 [tailwind]: https://github.com/tailwindlabs/tailwindcss
 
 ## Motivation
-Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read and maintain, also, the use of a tool like Tailwind needs a specific plugin for the bundle tool used and the front end framework as it reads the jacascript code to optimise the CSS footprint.
-This plugin try to bring the same idea reducing the CSS footprint using CSS utilities but calculted on the fly reading a standard CSS source code, and orgenise the class utilities in the CSS Module Object even keeping most of the CSS Modules functionalities.
-This approach keep the functionalities agnostic in terms of the Front end framework used putting in the center just the CSS standard.
-Of course there are little considerations to make in order to write the your own CSS in for an optimised CSS output related to your specific case, but nothing too crazy if you are already familiar on the use of CSS Modules and any CSS Preprocessr.
-Also There are great CSS Frameworks out there quite largely use from many compaies, sich as [Bootstrap], [Bulma], [SemanticUI] and so on. Use this plugin in addition to those CSS Frameworks would improve the CSS footprint without change your code base.
+Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read and maintain.
+This plugin try to bring the same idea reducing the CSS footprint using CSS utilities calculted at build time reading a standard CSS source code, and orgenise the class utilities in the CSS Module Object even keeping most of the CSS Modules functionalities.
+This approach keep the functionalities agnostic in terms of the CSS end framework used putting in the center just the CSS standard.
+Also There are great CSS Frameworks out there quite largely used, such as [Bootstrap], [Bulma], [SemanticUI] and so on.
+Use this plugin in addition to those CSS Frameworks will improve the CSS footprint without change your code base.
 With Utility Modules you are the framework rock star 🤘😎🤘.
 
 [bootstrap]: https://getbootstrap.com/docs/3.4/css/
@@ -21,11 +21,13 @@ With Utility Modules you are the framework rock star 🤘😎🤘.
 ## Summary
 * Options
   * [test](#test)
+  * [selectors](#selectors)
   * [scope](#scope)
-    * [cssVariables](#cssVariables)
-  * [modules](#modules)
-    * [getModules](#getModules)
+    * [classNames](#classNames)
     * [Globals](#Globals)
+    * [cssVariables](#cssVariables)
+  * [getModules](#getModules)
+  * [usedClasses](#usedClasses)
   * [utility](#utility)
     * [mode](#mode)
     * [getUtlityModules](#getUtlityModules)
@@ -41,13 +43,27 @@ example:
 ```js
 // options
 {
-    test: {
-        include: /\.util\.css$/,
-        exclude: /\.not\.util\.css$/,
-    },
+  test: {
+    include: /\.util\.css$/,
+    exclude: /\.not\.util\.css$/,
+  },
 }
 ```
 Both the `test` options (`include` and `exclude`) can accept as parameter a `RegExp`, a `string`, a `null` value or an array of them. In the example above all the files which ands with `.util.css` will be processed, except for the files ending with `.not.util.css`.
+
+### selectors
+The modern browsers supeprts the [nested selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/Nesting_selector).
+This option accept two values `nested` or `flat`, `nested` is the default value.
+The `nested` option nests the selectors and flat them just where convenient in order to reduce the resultant css code output size.
+Specially useful if you are using any css preprocessor, which flat all selectors.
+The `flat` option is flats all selectors, in case your target is any browser which is not supporting the selector nesting.
+example:
+```js
+// options
+{
+  selectors: 'flat', // or 'nested'
+}
+```
 
 ### scope
 The suffix scope ID is calculated with a SHA-256 hash `8` characters long by default preceded form `_`, the key used is:
@@ -63,44 +79,30 @@ shorthand to increse the scope suffix ID:
 ```js
 // Options
 {
-    scope: 10 // length or you can assigh a scope configuration object
+  scope: 10 // length or you can assign a scope configuration object
 }
 ```
 ```js
 // Options
 {
-    scope: {
-        length: 10,
-    },
+  scope: {
+    length: 10,
+  },
 }
 ```
-### cssVariables
-The scope configuration object can contains a `cssVariables` option, which accept as value a `boolean`, a `string` or a configuration object.
-These options handle the behaviour related to che CSS Variable scoping.
-If `cssVariables` are set to `true`, a scope suffix will be added for the CSS variables declared in the `:root` selector using `/` by default as key for generate the the suffix ID with the current length.
-If a `string` is assigned, this will be used as key for the suffix ID.
 
-Configuration object example:
-
-```js
-// Options
-{
-    scope: {
-        cssVariables: {
-            key: '/' // by default - optional
-            include: /^-[A-Z]+/, // optional
-            exclude: /[a-z]$/ // optional
-        },
-    }
-}
-```
-In the example above has been used the optional options `include` and `exclude` to filter the CSS variable names where apply the scope.
-
-### modules
-For option `{ modules: true }`:
-The scope ID suffix will be applied to all the classNames and keyframes names in the file.
+### classNames
+The scope ID suffix will be applied to all the classNames and keyframes names into the file.
+By default is `true`;
 as example:
-
+```js
+// Options
+{
+  scope: {
+    classNames: true,
+  },
+}
+```
 ```css
 .title { color: green; }
 .title:hover { color: red; }
@@ -124,34 +126,13 @@ After the transformation it will become like this:
 @keyframes fadeIn_116zl1d3 { opacity: 1; }
 @keyframes moveIn_116zl1d3 { margin-top: 100px; }
 ```
-### getModules
-The `getModules` option accept a `function` or an `async function` which get as parameters `modules` (an object with the className as key and the scoped className as value), and `filePath` (which is the full file path);
-example:
-```js
-// options
-{
-    modules: true,
-    getModules: (modules, filepath) => {
-        // do something
-    },
-}
-```
-Where the modules object will be something like:
-```js
-{
-  'title': 'title_116zl1d3',
-  'fade-in': 'fade-in_116zl1d3'
-}
-```
-This function will be called if the `modules` and/or the `utility` options are set.
-You can check [here](###utility) more  info about the `utility` option.
 
-### Global
+### Globals
 Is possible using the CSS Module option to keep global (so without scope suffix) a class or an animation name.
-You can use the syntax `:global .className` or `:global(.className)` for the classes and `global(animationName)`
+You can use the syntax `:global(.className)` for the classes and `global(animationName)`
 for the keyframes.
 ```css
-:global .title { color: green; }
+:global(.title) { color: green; }
 .title:hover { color: red; }
 
 .fade-in { animation: 3s linear global(fadeIn), 3s ease-out 5s moveIn; }
@@ -173,7 +154,7 @@ After the transformation it will become like this:
 @keyframes fadeIn { opacity: 1; }
 @keyframes moveIn_116zl1d3 { margin-top: 100px; }
 ```
-And the getModules function give you a Module object for transformed classes:
+And the [getModules](#getModules) function give you a Module object for transformed classes:
 
 ```js
 {
@@ -181,17 +162,66 @@ And the getModules function give you a Module object for transformed classes:
 }
 ```
 
+### cssVariables
+The scope configuration object can contains a `cssVariables` option, which accept as value a `boolean`, a `string` or a configuration object.
+These options handle the behaviour related to che CSS Variable scoping.
+If `cssVariables` are set to `true`, a scope suffix will be added for the CSS variables declared in the `:root` selector using `/` by default as key for generate the the suffix ID with the current length.
+If a `string` is assigned, this will be used as key for the suffix ID.
+
+Configuration object example:
+
+```js
+// Options
+{
+  scope: {
+    cssVariables: {
+      key: '/' // by default - optional
+      include: /^-[A-Z]+/, // optional
+      exclude: /[a-z]$/ // optional
+    },
+  }
+}
+```
+In the example above has been used the optional options `include` and `exclude` to filter the CSS variable names where apply the scope.
+
+### getModules
+The `getModules` option accept a `function` or an `async function` which get as parameters `modules` (an object with the className as key and the scoped className as value), and `filePath` (which is the full file path);
+The function will be not called if `scope.classNames` and `utility` are set to `false`.
+example:
+```js
+// options
+{
+  getModules: (modules, filepath) => {
+    // do something
+  },
+}
+```
+Where the modules object will be something like:
+```js
+{
+  'title': 'title_116zl1d3',
+  'fade-in': 'fade-in_116zl1d3'
+}
+```
+This function will be called if the `modules` and/or the `utility` options are set.
+You can check [here](###utility) more  info about the `utility` option.
+
+### usedClasses
+Useful to redulce the CSS resultant code size.
+This option accept a string array as value, where each string represent a regular expression of the classed used.
+The unused classes (and keyframes) will be removed from the resultant CSS code.
+
 ### utility
 The `utility` option accept as value a `true` or a configuration object where the `true` is a shorthend for dafault configuration.
 ```js
 // options
 {
-    utility: {
-        mode: 'readable', // by default, could be 'readable' | 'semireadable' | 'coded'
-        media: false, // by default, process the nasted media queries if true
-        container: false, // by default, process the container properties if true
-        output: true, // by default, append the css utilites rules at the end of the file if true
-    },
+  utility: {
+    mode: 'readable', // by default, could be 'readable' | 'semireadable' | 'coded'
+    media: true, // by default, process the nasted media queries if true
+    container: true, // by default, process the container properties if true
+    output: true, // by default, append the css utilites rules at the end of the file if true
+  },
 }
 ```
 The utility functionality read the CSS properies and values decalsered in each class and for each declaration generate a

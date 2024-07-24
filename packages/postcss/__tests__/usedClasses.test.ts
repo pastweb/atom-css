@@ -88,9 +88,9 @@ describe('', () => {
   });
 
   it('should remove unused classes in root media query.', async () => {
-    const input = '.class1 { animation: 3s linear global(animation1), 3s ease-out 5s animation2;\n.class2 { color: red;\n.class3 { color: blue; animation-name: animation3\n}\n}\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }\n@keyframes animation3 { opacity: 0; }@media (min-width: 30em) and (max-width: 50em) { .class1 { color: green;\n.class2 { color: black;\n.class3 { color: white\n}\n}\n}\n}';
-    const expectedOutput = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2;\n.class2 { color: red\n}\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }@media (min-width: 30em) and (max-width: 50em) { .class1 { color: green;\n.class2 { color: black\n}\n}\n}';
-    
+    const input = '.class1 { animation: 3s linear global(animation1), 3s ease-out 5s animation2;\n.class2 { color: red;\n.class3 { color: blue; animation-name: animation3\n}\n}\n}\n@media (min-width: 30em) and (max-width: 50em) { .class1 { color: green;\n.class2 { color: black;\n.class3 { color: white\n}\n}\n}\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }\n@keyframes animation3 { opacity: 0; }';
+    const expectedOutput = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2;\n.class2 { color: red\n}\n}\n@media (min-width: 30em) and (max-width: 50em) { .class1 { color: green;\n.class2 { color: black\n}\n}\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
+
     const output = await processCSS(input, {
       scope: { classNames: false },
       usedClasses: ['class1', 'class2'],

@@ -1,5 +1,6 @@
+import postcss from 'postcss';
 import { createFilter } from '@rollup/pluginutils';
-import { resolveOptions, generateHash, countAncestors, processRules } from './utils';
+import { resolveOptions, generateHash, countAncestors, processRules, nestSelectors, flatSelectors } from './utils';
 import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
 import type { PluginCreator, Rule, AtRule, Root } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
@@ -33,8 +34,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
       // Object to store utility class name and its own css
       const utilityModules: Record<string, Rule | AtRule> = {};
       // Set of classNames already processed for the utility functionality
-      // const processedClasses: Set<string> = new Set();
       const rules: Record<string, { ancestors: number, rule: Rule | AtRule}[]> = {};
+      // unused keyframes names if usedClasses option is set
       const unusedAnimations: Set<string> = new Set();
 
       if (!opts.scope.classNames && opts.scope.cssVariables.key && opts.utility) return;
@@ -43,6 +44,9 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
 
       const { include, exclude } = opts.scope.cssVariables;
       const varsFilter = (include || exclude) && createFilter(include, exclude);
+
+      // nest selectors
+      nestSelectors(root);
       
       root.walkRules(rule => {
         if (rule.selector === ':root' && opts.scope.cssVariables.key) {
@@ -61,7 +65,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         } else {
           const scopedVars = opts.scope.cssVariables.key && hasScopedVars;
 
-          if (opts.usedClasses && rule.selector.startsWith('.')) {
+          if (opts.usedClasses && /\.\w+/g.test(rule.selector)) {
             const className = rule.selector.substring(1);
 
             if (!opts.usedClasses.test(className)) {
@@ -149,11 +153,9 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           }
 
           if (opts.scope.classNames) {
-            // Add a suffix to each class name if not preceded by :global
             rule.selectors = rule.selectors.map(selector =>
-              selector.replace(CLASS_NAME_RE, (match, prefix, globalContent, globalClassName, className) => {
+              selector.replace(CLASS_NAME_RE, (match, prefix, globalContent, className) => {
                 if (globalContent) return globalContent; // Return just the class name without :global
-                if (globalClassName) return `.${globalClassName}`; // Return just the class name without :global
                 if (!className) return match;
 
                 const suffixedClassName = `${className}${suffix}`;
@@ -247,6 +249,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           await getUtilityModules(filePath, uModules);
         }
       }
+
+      flatSelectors(root, opts.selectors !== 'flat');
 
       if (opts.scope.classNames || opts.utility) {
         await opts.getModules(filePath, modules);
