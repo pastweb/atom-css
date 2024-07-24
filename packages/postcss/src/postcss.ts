@@ -116,6 +116,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
             }
           }
 
+          // handle animations and cssVars names
           if (opts.scope.classNames || scopedVars) {
             rule.walkDecls(decl => {
               if (/^animation(-name)?$/.test(decl.prop)) {
@@ -150,19 +151,6 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
                 });
               }
             });
-          }
-
-          if (opts.scope.classNames) {
-            rule.selectors = rule.selectors.map(selector =>
-              selector.replace(CLASS_NAME_RE, (match, prefix, globalContent, className) => {
-                if (globalContent) return globalContent; // Return just the class name without :global
-                if (!className) return match;
-
-                const suffixedClassName = `${className}${suffix}`;
-                if (!modules[className]) modules[className] = suffixedClassName;
-                return `.${suffixedClassName}`;
-              })
-            );
           }
 
           // store rules must be processed for utility
@@ -242,15 +230,42 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           processRules(selector, isAtRule, selected, mode, opts.scope.length, modules, utilityModules, propFilter, valFilter);
         }
         
-        if (output) Object.values(utilityModules).forEach(rule => root.append(rule));
-        
         if (getUtilityModules) {
           const uModules = Object.entries(utilityModules).reduce((acc, [className, rule]) => ({ ...acc, [className]: rule.toString() }), {});
           await getUtilityModules(filePath, uModules);
         }
       }
 
+      if (opts.scope.classNames) {
+        const { classNames } = opts.scope;
+        // if Utiliy option is set, root could not have any rule nodes
+        Object.entries(modules).forEach(([ className, classes ]) => {
+          const suffixedClassName = typeof classNames === 'function' ? classNames(className, filePath, css): `${className}${suffix}`;
+          modules[className] = classes.replace(new RegExp(`^${className}`), suffixedClassName);
+        });
+
+        root.walkRules(rule => {
+          rule.selector = rule.selector.replace(CLASS_NAME_RE, (match, prefix, globalContent, className) => {
+            if (globalContent) return globalContent; // Return just the class name without :global
+            if (!className) return match;
+            
+            const suffixedClassName = typeof classNames === 'function' ? classNames(className, filePath, css): `${className}${suffix}`;
+            
+            if (!modules[className]) modules[className] = suffixedClassName;
+            else if (new RegExp(`^${className}( |$)`).test(modules[className])) {
+              modules[className] = modules[className].replace(new RegExp(`^${className}`), suffixedClassName);
+            }
+
+            return `.${suffixedClassName}`;
+          });
+        });
+      }
+
       flatSelectors(root, opts.selectors !== 'flat');
+
+      if (opts.utility && typeof opts.utility !== 'boolean' && opts.utility.output) {
+        Object.values(utilityModules).forEach(rule => root.append(rule));
+      }
 
       if (opts.scope.classNames || opts.utility) {
         await opts.getModules(filePath, modules);

@@ -30,13 +30,13 @@ export interface ResolvedVariablesOptions {
 
 export interface ScopeOptions {
   length?: number;
-  classNames?: boolean;
+  classNames?: boolean | ((name: string, filePath: string, css: string) => string);
   cssVariables?: boolean | string | VariablesOptions;
 };
 
 export interface ResolvedScopeOptions {
   length: number;
-  classNames: boolean;
+  classNames: boolean | ((name: string, filePath: string, css: string) => string);
   cssVariables: ResolvedVariablesOptions;
 };
 
