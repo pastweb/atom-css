@@ -51,6 +51,7 @@ There are alredy internal plugins in order to provide this functionality for the
 
 You can check the [example](https://github.com/pastweb/css-tools/tree/master/packages/vite/examples/rimmel) for [rimmel](https://github.com/ReactiveHTML/rimmel).
 
+astPlugin example:
 ```js
 export default defineConfig({
   plugins: [
@@ -71,7 +72,7 @@ export default defineConfig({
               
               if (propsNode.type !== 'ObjectExpression') return;
   
-              const [ valueNode ] = node.properties.filter(({ key }: any) => key.name === 'className');
+              const [ valueNode ] = node.properties.filter(({ key }) => key.name === 'className');
                 
               if (valueNode) return valueNode.value;
             }
