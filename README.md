@@ -12,10 +12,10 @@ A set of tools inspired to [CSS Modules] and [Tailwind] CSS framework.
 ## Motivation
 Both the tools names above are great, just the use of Tailwind can make the source code verbose and sometime hard to read and maintain.
 This plugin try to bring the same idea reducing the CSS footprint using CSS utilities calculted at build time reading a standard CSS source code, and orgenise the class utilities in the CSS Module Object even keeping most of the CSS Modules functionalities.
-This approach keep the functionalities agnostic in terms of the CSS end framework used putting in the center just the CSS standard.
+This approach keep the functionalities agnostic in terms of the CSS framework used putting in the center just the CSS standard.
 Also There are great CSS Frameworks out there quite largely used, such as [Bootstrap], [Bulma], [SemanticUI] and so on.
 Use this plugin in addition to those CSS Frameworks will improve the CSS footprint without change your code base.
-With Utility Modules you are the framework rock star 🤘😎🤘.
+With css-tools you are the framework rock star 🤘😎🤘.
 
 [bootstrap]: https://getbootstrap.com/docs/3.4/css/
 [bulma]: https://bulma.io/
@@ -35,8 +35,8 @@ With Utility Modules you are the framework rock star 🤘😎🤘.
     * [mode](#mode)
     * [getUtlityModules](#getUtlityModules)
 * Plugins
-  * [PostCSS](https://github.com/pastweb/css-utility-modules/blob/master/packages/postcss/README.md)
-  * [Vite](https://github.com/pastweb/css-utility-modules/blob/master/packages/vite/README.md)
+  * [PostCSS](https://github.com/pastweb/css-tools/tree/master/packages/postcss)
+  * [Vite](https://github.com/pastweb/css-tools/tree/master/packages/vite)
 
 ## Options
 ---
