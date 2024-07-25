@@ -93,6 +93,7 @@ shorthand to increse the scope suffix ID:
 
 ### classNames
 The scope ID suffix will be applied to all the classNames and keyframes names into the file.
+It is possible assign a function `(className: string, filePath: string, css: string) => string` for customize the className, this will be used just for the classNames.
 By default is `true`;
 as example:
 ```js
@@ -218,8 +219,13 @@ The `utility` option accept as value a `true` or a configuration object where th
 {
   utility: {
     mode: 'readable', // by default, could be 'readable' | 'semireadable' | 'coded'
-    media: true, // by default, process the nasted media queries if true
-    container: true, // by default, process the container properties if true
+    atRules: { // all are true by default for process the @ rules
+      container: true, 
+      layer: true,
+      media: true,
+      scope: true,
+      supports: true,
+    },
     output: true, // by default, append the css utilites rules at the end of the file if true
   },
 }

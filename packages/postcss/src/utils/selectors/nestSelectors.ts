@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { NESTED_AT_RULES, SPLIT_SELECTOR_RE } from './constants';
+import { AT_RULES, SPLIT_SELECTOR_RE } from './constants';
 import { ChildNode, Rule, Root, AtRule } from 'postcss';
 
 // Split selector by combinators and special characters, capturing pseudo-classes and pseudo-elements
@@ -58,7 +58,7 @@ function traverseNodes(parentRule: AtRule | Rule | Root, nodes: (Rule | AtRule)[
       removeRules.push(node);
     }
 
-    if (node.type === 'atrule' && NESTED_AT_RULES.has(node.name)) {
+    if (node.type === 'atrule' && AT_RULES.has(node.name)) {
       node.each((child: ChildNode) => {
         if (child.type === 'rule' && child.selector === '&') {
           child.nodes.forEach(decl => node.append(decl.clone()));

@@ -579,7 +579,7 @@ describe('css-utility-modules - utility', () => {
       getModules,
       scope: { classNames: false },
       utility: {
-        container: true,
+        atRules: { container: true },
         property: { exclude: /--panel-width/ },
         value: { exclude: /--panel-width/g },
         output: false,

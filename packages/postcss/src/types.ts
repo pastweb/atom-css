@@ -2,8 +2,13 @@ import { FilterPattern } from '@rollup/pluginutils';
 
 export interface UtilityOptions {
   mode?: 'readable' | 'semireadable' | 'encoded';
-  media?: boolean;
-  container?: boolean;
+  atRules?: {
+    container?: boolean;
+    layer?: boolean;
+    media?: boolean;
+    scope?: boolean;
+    supports?: boolean;
+  };
   output?: boolean;
   property?: {
     include?: FilterPattern,
@@ -30,20 +35,25 @@ export interface ResolvedVariablesOptions {
 
 export interface ScopeOptions {
   length?: number;
-  classNames?: boolean | ((name: string, filePath: string, css: string) => string);
+  classNames?: boolean | ((ClassName: string, filePath: string, css: string) => string);
   cssVariables?: boolean | string | VariablesOptions;
 };
 
 export interface ResolvedScopeOptions {
   length: number;
-  classNames: boolean | ((name: string, filePath: string, css: string) => string);
+  classNames: boolean | ((className: string, filePath: string, css: string) => string);
   cssVariables: ResolvedVariablesOptions;
 };
 
 export interface ResolvedUtilityOptions {
   mode: 'readable' | 'semireadable' | 'encoded';
-  media: boolean;
-  container: boolean
+  atRules: {
+    container: boolean;
+    layer: boolean;
+    media: boolean;
+    scope: boolean;
+    supports: boolean;
+  };
   output: boolean;
   property?: {
     include?: FilterPattern,

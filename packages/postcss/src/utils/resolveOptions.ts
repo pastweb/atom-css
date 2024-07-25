@@ -33,6 +33,7 @@ export function resolveOptions(options: Options): ResolvedOptions {
     } : {},
     utility: options.utility ? typeof options.utility === 'boolean' ? DEFAULT_UTILITY_OPTIONS : {
       ...DEFAULT_UTILITY_OPTIONS,
+      atRules: { ...DEFAULT_UTILITY_OPTIONS.atRules, ...options.utility.atRules || {} },
       ...options.utility as Partial<ResolvedUtilityOptions>,
     } as ResolvedUtilityOptions: false,
     getModules: options.getModules || (() => {}),

@@ -1,8 +1,8 @@
 import postcss from 'postcss';
 import { createFilter } from '@rollup/pluginutils';
 import { resolveOptions, generateHash, countAncestors, processRules, nestSelectors, flatSelectors } from './utils';
-import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE } from './constants';
-import type { PluginCreator, Rule, AtRule, Root } from 'postcss';
+import { ANIMATION_NAME_RE, CLASS_NAME_RE, GLOBAL_ANIMATION_RE, AT_RULES } from './constants';
+import type { PluginCreator, Rule, AtRule } from 'postcss';
 import { Options, ResolvedUtilityOptions } from './types';
 
 // Create the plugin
@@ -184,25 +184,24 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           }
         }
 
-        if (
-          opts.utility &&
-          ((opts.utility as ResolvedUtilityOptions).media || (opts.utility as ResolvedUtilityOptions).container) &&
-          (rule.name === 'media' || rule.name === 'container'))
-        {
+        if (opts.utility && AT_RULES.has(rule.name)) {
+          const { container, layer, media, scope, supports } = (opts.utility as ResolvedUtilityOptions).atRules;
+          let processRule = false;
+          
+          if (container && rule.name === 'container') processRule = true;
+          if (layer && rule.name === 'layer') processRule = true;
+          if (media && rule.name === 'media') processRule = true;
+          if (scope && rule.name === 'scope') processRule = true;
+          if (supports && rule.name === 'supports') processRule = true;
+          if (!processRule) return;
+
           const ancestors = countAncestors(rule);
           // skip AtRules at the root level
           if (!ancestors) return;
           
-          const { media, container } = opts.utility as ResolvedUtilityOptions;
-          let processRule = false;
-          
-          if (media && rule.name === 'media') processRule = true;
-          if (container && rule.name === 'container') processRule = true;
-
-          if (!processRule) return;
-          
-          rules[rule.params] = rules[rule.params] || [];
-          rules[rule.params].push({ ancestors, rule });
+          const ruleName = `${rule.name}${rule.params ? ` ${rule.params}` : ''}`;
+          rules[ruleName] = rules[ruleName] || [];
+          rules[ruleName].push({ ancestors, rule });
         }
       });
 
