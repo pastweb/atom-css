@@ -11,7 +11,7 @@ A [Vite] plugin inspired to [CSS Modules] and [Tailwind] CSS framework.
 * Calculate utilities on the fly and assign them in the CSS module object.
 * Remove the unused classes.
 
-Fore more info about tools and the options check the [CSS Tools](https://github.com/pastweb/css-tools/blob/master/README.md) page.
+Fore more info about tools and the options check the [CSS Tools](https://github.com/pastweb/css-tools) page.
 
 ## install
 ```bash
@@ -41,7 +41,7 @@ export default defineConfig({
   * [mode](#mode)
 
 ## Options
-All options are available as described in the [documentation](https://github.com/pastweb/css-tools/blob/master/README.md), less the `getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
+All options are available as described in the [documentation](https://github.com/pastweb/css-tools), less the `getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
 Also, `usedClasses` is a boolean in case you don't want to use the `astPlugins` in order to remove the unused classa from the css.
 
 ## AstPlugins
