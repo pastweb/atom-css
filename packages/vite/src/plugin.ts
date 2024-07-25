@@ -3,9 +3,9 @@ import postcss from 'postcss';
 import { postCssUtlityModules, Options } from '../../postcss';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
-import { CLIENT_PUBLIC_PATH, CLASS_NAME_RE, JS_TYPES_RE, FRAMEWORK_TYPE } from './constants';
+import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
-import { CssUtilityOptions, ModulesMap, ImporterData } from './types';
+import { CssUtilityOptions, ModulesMap, ImporterData, ResolvedCssUtilityOptions } from './types';
 
 // Utility function to process CSS with the plugin
 async function processCSS (input: string, opts: Options, filePath: string) {
@@ -17,7 +17,9 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
   let importers: Record<string, ImporterData> = {};
   let modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
+  let generateScopedName: (name: string, filePath: string, css: string) => string;
   let opts: Options;
+  let usedClasses = true;
   let astPlugins: AstPlugin[];
   let resolvedAstPlugins: AstPlugins = {};
   let config: ResolvedConfig;
@@ -28,7 +30,12 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
     {
       name: 'vite-plugin-utility-modules-pre',
       enforce: 'pre',
-      config() {
+      config(config) {
+        if (config.css?.lightningcss) return;
+        if (config.css && typeof config.css.modules === 'object' && typeof config.css.modules.generateScopedName === 'function') {
+          generateScopedName = config.css.modules.generateScopedName;
+        }
+
         return {
           css: {
             modules: {
@@ -42,22 +49,33 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
         config = _config;
       },
       buildStart() {
+        if (config.css?.lightningcss) return;
         // Ensure a new cache for every build (i.e. rebuilding in watch mode)
         importers = {};
         modulesMap = {};
-        const { astPlugins: _astPlugins, ...rest } = resolveOptions(options, modulesMap, config);
+
+        const {
+          astPlugins: _astPlugins,
+          usedClasses: _usedClasses,
+          ...rest
+        } = resolveOptions(options, modulesMap, config, generateScopedName);
+
         opts = rest;
         astPlugins = _astPlugins;
+        usedClasses = typeof _usedClasses === 'boolean' ? _usedClasses : usedClasses;
+
         _astPlugins.forEach(({ name, ast }) => {
           Object.entries(ast).forEach(([type, fn]) => {
             resolvedAstPlugins[type] = resolvedAstPlugins[type] || {};
             resolvedAstPlugins[type][name] = fn;
           });
         });
+
         const { include, exclude } = opts.test || {};
         testFilter = (include || exclude) && createFilter(include, exclude);
       },
       async resolveId(id, importer, { isEntry }) {
+        if (config.css?.lightningcss) return;
         if (testFilter && testFilter(id)) {
           const resolved = await this.resolve(id, importer);
           
@@ -79,7 +97,8 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
     {
       name: 'vite-plugin-utility-modules',
       async transform(code, id) {
-        if (!/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
+        if (config.css?.lightningcss) return;
+        if (usedClasses && !/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
           const usedClasses = await getUsedClasses(id, code, astPlugins, resolvedAstPlugins);
 
           if (!usedClasses) return null;
@@ -105,19 +124,25 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
           return null;
         } else if (testFilter && !testFilter(id)) return;
 
-        console.log('--------- id ---------')
-        console.log(id)
-        console.log('--------- code ---------')
-        console.log(code)
-        const match = code.match(CLASS_NAME_RE);
-        
-        if (!match) return;
+        let disableModules = false;
+        if (!MODULE_RE.test(id) && (typeof config.css.modules !== 'boolean' || !config.css.modules)) {
+          disableModules = true;
+        }
 
         // use the code parsed from the vite:css-plugin for prePsessors and url resolution
-        const { usedClasses } = modulesMap[id];
-        const css = await processCSS(code, { ...opts, usedClasses }, id);
+        const { usedClasses: _usedClasses } = modulesMap[id];
+        const css = await processCSS(code, {
+          ...opts,
+          usedClasses: _usedClasses,
+          ...disableModules ? {
+            scope: { classNames: false },
+            utility: false,
+          } : {},
+        }, id);
+        
         modulesMap[id].css = css;
         const map = this.getCombinedSourcemap();
+        
         return { code: css, map };
       },
     },
@@ -125,6 +150,7 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
       name: 'vite-plugin-utility-modules-post',
       enforce: 'post',
       async transform(_, id, options) {
+        if (config.css?.lightningcss) return;
         if (testFilter && !testFilter(id)) return;
 
         const { modules } = modulesMap[id];
@@ -159,6 +185,7 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
         return { code: modulesCode };
       },
       async renderChunk(_, chunk) {
+        if (config.css?.lightningcss) return;
         const { facadeModuleId, viteMetadata, moduleIds, isEntry } = chunk;
   
         if (facadeModuleId && modulesMap[facadeModuleId]) {
@@ -175,6 +202,7 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
       },
 
       async generateBundle(_options, bundle) {
+        if (config.css?.lightningcss) return;
         const dataModules = Object.values(modulesMap);
         for (const [ file, chunk ] of Object.entries(bundle)) {
           const { type, fileName } = chunk;

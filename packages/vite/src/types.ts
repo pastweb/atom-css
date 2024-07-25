@@ -3,6 +3,7 @@ import { AstPlugin } from './util';
 
 export type CssUtilityOptions = Omit<Options, 'test' | 'getModules' | 'utility' | 'usedClasses'> & {
   astPlugins?: AstPlugin[];
+  usedClasses?: boolean;
   utility?: Omit<UtilityOptions, 'getUtilityModules' | 'output'>;
 };
 
