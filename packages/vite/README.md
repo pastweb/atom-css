@@ -48,7 +48,9 @@ Also, `usedClasses` is a boolean in case you don't want to use the `astPlugins` 
 The `AstPlugin` is a plugin which read the javascript source file in order to exctract the classNames used in your source code.
 This list o classes are later passes to `css-tools` in order to remove the unused classes from the resultant css code.
 There are alredy internal plugins in order to provide this functionality for the most used Front End frameworks such as [react](https://github.com/facebook/react), [preact](https://github.com/preactjs/preact), [vue](https://github.com/vuejs) and [svelte](https://github.com/sveltejs/svelte).
-You can check the [example]() for [rimmel](https://github.com/ReactiveHTML/rimmel).
+
+You can check the [example](https://github.com/pastweb/css-tools/tree/master/packages/vite/examples/rimmel) for [rimmel](https://github.com/ReactiveHTML/rimmel).
+
 ```js
 export default defineConfig({
   plugins: [
