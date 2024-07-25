@@ -72,7 +72,7 @@ export default defineConfig({
               
               if (propsNode.type !== 'ObjectExpression') return;
   
-              const [ valueNode ] = node.properties.filter(({ key }) => key.name === 'className');
+              const [ valueNode ] = propsNode.properties.filter(({ key }) => key.name === 'className');
                 
               if (valueNode) return valueNode.value;
             }
