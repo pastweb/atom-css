@@ -1,5 +1,5 @@
 {
-  "name": "vite-plugin-utility-modules",
+  "name": "@pastweb/vite-plugin-css-tools",
   "version": "1.0.0",
   "description": "plugin for Css Utility Modules",
   "main": "index.js",
@@ -13,7 +13,8 @@
     "vite-plugin",
     "tailwind",
     "css",
-    "modules"
+    "modules",
+    "utility"
   ],
   "author": "Domenico Pasto",
   "license": "MIT",

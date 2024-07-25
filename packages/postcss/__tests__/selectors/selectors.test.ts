@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { postCssUtlityModules } from '../../src';
+import { postCssTools } from '../../src';
 import { Options } from '../../src/types';
 
 const DEFAULT_OPTIONS = {
@@ -8,11 +8,11 @@ const DEFAULT_OPTIONS = {
 };
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([ postCssUtlityModules({ ...DEFAULT_OPTIONS, ...opts}) ]).process(input, { from: undefined });
+  const result = await postcss([ postCssTools({ ...DEFAULT_OPTIONS, ...opts}) ]).process(input, { from: undefined });
   return result.css;
 };
 
-describe('css-utility-modules - selectors', () => {
+describe('css-tools - selectors', () => {
   it('should nest flat selectors correctly', async () => {
     const input = `.class1 { color: red; background-color: white; }.class1 .class2 { color: blue; }`;
     const expectedOutput = `.class1 { color: red; background-color: white;.class2 { color: blue; } }`;

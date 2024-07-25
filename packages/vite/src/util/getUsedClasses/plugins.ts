@@ -12,9 +12,7 @@ export const plugins: AstPlugin[] = [
     },
     ast: {
       [NodeType.CallExpression](node, specifiers) {
-        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
-
-        if (!specifier) return;
+        if (!specifiers.has(node.callee.name)) return;
 
         return getClassPropertyNode(node.arguments[1], 'class');
       }
@@ -29,9 +27,7 @@ export const plugins: AstPlugin[] = [
     },
     ast: {
       [NodeType.CallExpression](node, specifiers) {
-        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
-
-        if (!specifier) return;
+        if (!specifiers.has(node.callee.name)) return;
 
         return getClassPropertyNode(node.arguments[1], 'className');
       }
@@ -45,9 +41,7 @@ export const plugins: AstPlugin[] = [
     },
     ast: {
       [NodeType.CallExpression](node, specifiers) {
-        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
-
-        if (!specifier) return;
+        if (!specifiers.has(node.callee.name)) return;
 
         return getClassPropertyNode(node.arguments[1], 'class');
       }
@@ -66,9 +60,7 @@ export const plugins: AstPlugin[] = [
         }
       },
       [NodeType.CallExpression](node, specifiers) {
-        const specifier = specifiers.has(node.callee.name) ? node.callee.name : '';
-
-        if (!specifier) return;
+        if (!specifiers.has(node.callee.name)) return;
 
         return node.arguments[1];
       }

@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { postCssUtlityModules } from '../src';
+import { postCssTools } from '../src';
 import { generateHash } from '../src/utils';
 import { Options } from '../src/types';
 
@@ -7,11 +7,11 @@ const getScope = (...args: string[]) => `_${generateHash(8, ...args)}`;
 
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}, filePath?: string) => {
-  const result = await postcss([postCssUtlityModules(opts)]).process(input, { from: filePath });
+  const result = await postcss([postCssTools(opts)]).process(input, { from: filePath });
   return result.css;
 };
 
-describe('postcss-utility-modules - modules', () => {
+describe('css-tools - ClassNames', () => {
   it('should not add suffixes to class names', async () => {
     const input = '.example { color: red; }\n.example:hover { color: blue; }';
     const expectedOutput = input;

@@ -1,5 +1,5 @@
 {
-  "name": "css-utility-modules",
+  "name": "@pastweb/css-tools",
   "private": true,
   "workspaces": [
     "packages/*"

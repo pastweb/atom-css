@@ -1,13 +1,13 @@
 import { Options, UtilityOptions } from '../../postcss';
 import { AstPlugin } from './util';
 
-export type CssUtilityOptions = Omit<Options, 'test' | 'getModules' | 'utility' | 'usedClasses'> & {
+export type CssToolsOptions = Omit<Options, 'test' | 'getModules' | 'utility' | 'usedClasses'> & {
   astPlugins?: AstPlugin[];
   usedClasses?: boolean;
   utility?: Omit<UtilityOptions, 'getUtilityModules' | 'output'>;
 };
 
-export type ResolvedCssUtilityOptions = Omit<CssUtilityOptions, 'astPlugins'> & Omit<Options, 'usedClasses'> & {
+export type ResolvedCssUtilityOptions = Omit<CssToolsOptions, 'astPlugins'> & Omit<Options, 'usedClasses'> & {
   astPlugins: AstPlugin[];
 }
 

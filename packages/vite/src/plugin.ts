@@ -1,19 +1,19 @@
 import path from 'node:path';
 import postcss from 'postcss';
-import { postCssUtlityModules, Options } from '../../postcss';
+import { postCssTools, Options } from '../../postcss';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
-import { CssUtilityOptions, ModulesMap, ImporterData, ResolvedCssUtilityOptions } from './types';
+import { CssToolsOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
 async function processCSS (input: string, opts: Options, filePath: string) {
-  const result = await postcss([postCssUtlityModules(opts)]).process(input, { from: filePath });
+  const result = await postcss([postCssTools(opts)]).process(input, { from: filePath });
   return result.css;
 };
 
-export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
+export function cssTools(options: CssToolsOptions = {}): Plugin[] {
   let importers: Record<string, ImporterData> = {};
   let modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
@@ -28,7 +28,7 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
 
   return [
     {
-      name: 'vite-plugin-utility-modules-pre',
+      name: 'vite-plugin-css-tools-pre',
       enforce: 'pre',
       config(config) {
         if (config.css?.lightningcss) return;
@@ -95,7 +95,7 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
       configureServer(_server) { server = _server; },
     },
     {
-      name: 'vite-plugin-utility-modules',
+      name: 'vite-plugin-css-tools',
       async transform(code, id) {
         if (config.css?.lightningcss) return;
         if (usedClasses && !/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
@@ -147,7 +147,7 @@ export function utilityModules(options: CssUtilityOptions = {}): Plugin[] {
       },
     },
     {
-      name: 'vite-plugin-utility-modules-post',
+      name: 'vite-plugin-css-tools-post',
       enforce: 'post',
       async transform(_, id, options) {
         if (config.css?.lightningcss) return;

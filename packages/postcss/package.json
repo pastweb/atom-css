@@ -1,7 +1,7 @@
 {
-  "name": "postcss-utility-modules",
+  "name": "@pastweb/postcss-tools",
   "version": "1.0.0",
-  "description": "handle CSS modules, scoped CSS variables and utilities",
+  "description": "handle CSS modules, scoped CSS variables, utilities and nesting selectors",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "typings": "dist/types/index.d.ts",

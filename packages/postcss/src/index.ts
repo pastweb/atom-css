@@ -1,2 +1,2 @@
-export { plugin as postCssUtlityModules } from './postcss';
+export { plugin as postCssTools } from './postcss';
 export type { Options, UtilityOptions } from './types';

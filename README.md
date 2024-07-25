@@ -1,6 +1,9 @@
 # CSS Utility Modules
-A tool inspired to [CSS Modules] and [Tailwind] CSS framework
-for handle CSS modules, scoped CSS variables and utilities on the fly in the CSS module object.
+A set of tools inspired to [CSS Modules] and [Tailwind] CSS framework.
+* Redulce the css size nesting the selectors where convenient.
+* Handle CSS modules.
+* Scopes CSS variables.
+* Calculate utilities on the fly and assign them in the CSS module object.
 
 [postcss]: https://github.com/postcss/postcss
 [css modules]: https://github.com/css-modules/css-modules
@@ -52,7 +55,7 @@ example:
 Both the `test` options (`include` and `exclude`) can accept as parameter a `RegExp`, a `string`, a `null` value or an array of them. In the example above all the files which ands with `.util.css` will be processed, except for the files ending with `.not.util.css`.
 
 ### selectors
-The modern browsers supeprts the [nested selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/Nesting_selector).
+The modern browsers supports the [nested selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/Nesting_selector).
 This option accept two values `nested` or `flat`, `nested` is the default value.
 The `nested` option nests the selectors and flat them just where convenient in order to reduce the resultant css code output size.
 Specially useful if you are using any css preprocessor, which flat all selectors.
