@@ -67,14 +67,13 @@ export default defineConfig({
           ast: {
             ['CallExpression'](node, specifiers) {
               if (!specifiers.has(node.callee.name)) return;
-
-              const propsNode = node.arguments[1];
+              if (node.arguments[1].type !== 'ObjectExpression') return;
               
-              if (propsNode.type !== 'ObjectExpression') return;
-  
-              const [ valueNode ] = propsNode.properties.filter(({ key }) => key.name === 'className');
-                
-              if (valueNode) return valueNode.value;
+              const [ properties ] = node.arguments[1]; // the ast node representing the props object
+              
+              for (const { name, value } of properties) {
+                if (name === 'className') return value;
+              }
             }
           },
         },
