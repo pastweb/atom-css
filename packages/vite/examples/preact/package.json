@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --clearScreen=false --debug --force",
-    "build": "vite build --clearScreen=false --debug --force",
+    "build": "vite build --clearScreen=false",
     "preview": "vite preview"
   },
   "dependencies": {

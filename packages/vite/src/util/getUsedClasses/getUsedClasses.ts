@@ -1,7 +1,6 @@
 import { dirname, resolve } from 'node:path';
 import * as acorn from 'acorn';
 import { simple } from 'acorn-walk';
-import { getIdentifiers } from './getIdentifiers';
 import { getSpecifierNames } from './getSpecifierNames';
 import { getStrClasses } from './getStrClasses';
 import { setClassNames } from './setClasses';
@@ -13,19 +12,17 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
   const ast = acorn.parse(code, ACORN_OPTIONS);
   const classes: UsedClasses = {};
   const specifiers: { [frameworkName: string]: Set<string> } = {};
-  let hasClasses = false;
   const queue: Promise<any>[] = [];
 
   const runAstFunctions = (node: Node, astFn: { [name: string]: AstFunction }): void => {
     Object.entries(astFn).forEach(async ([ name, fn ]) => {
-      if (!hasClasses || !specifiers[name] || !specifiers[name].size) return;
-
+      if (!specifiers[name] || !specifiers[name].size) return;
       const response = fn(node, specifiers[name], id);
 
       if (response instanceof Promise) queue.push(response);
       
       const value = await response;
-      
+
       if (!value) return;
 
       if (Array.isArray(value)) {
@@ -40,8 +37,7 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
         classes[filePath] = classes[filePath] || { classes: [] };
         cls.forEach(c => classes[filePath].classes.push(c));
       } else {
-        const identifiers = getIdentifiers(classes);
-        setClassNames(value, identifiers);
+        setClassNames(value, classes);
       }
     });
   }
@@ -54,23 +50,13 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
       const { value } = node.source;
 
       if (CSS_LANGS_RE.test(value)) {
-        if (!node.specifiers.lenght) return;
-
         const dir = dirname(id);
         const fileName = resolve(dir, value);
         classes[fileName] = { identifiers: new Set(), classes: [] };
-        node.specifiers.forEach((specifier: Node) => classes[fileName].identifiers.add(specifier.local));
         
-        // const [ specifier ] = node.specifiers;
-
-        // if (!specifier || specifier.type !== NodeType.ImportDefaultSpecifier) return;
-
-        // const { name: identifier } = specifier.local;
-        // const dir = dirname(id);
-        // const fileName = resolve(dir, value);
-
-        // classes[fileName] = { identifier, classes: [] };
-        hasClasses = true;
+        if (node.specifiers) {
+          node.specifiers.forEach((specifier: Node) => classes[fileName].identifiers.add(specifier.local));
+        }
 
         return;
       }
@@ -89,7 +75,7 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
 
   simple(ast, a);
 
-  if (!hasClasses) return;
+  if (!Object.keys(classes).length) return;
 
   if (queue.length) await Promise.all(queue);
 

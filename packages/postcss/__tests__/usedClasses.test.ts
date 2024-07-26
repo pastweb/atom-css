@@ -14,7 +14,6 @@ const processCSS = async (input: string, opts: Options = {}, filePath?: string) 
 describe('css-tools - usedClassNames', () => {
   it('should remove the class names not defined in "usedClasses" option.', async () => {
     const input = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2;\n.class2 { color: red; }\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
-    const ID = getScope(input);
     const expectedOutput = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
     
     const output = await processCSS(input, {
@@ -40,7 +39,6 @@ describe('css-tools - usedClassNames', () => {
 
   it('should remove the class names defined in "usedClasses" option if empty.', async () => {
     const input = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2;\n.class2 {\n.class3 { color: blue }\n}\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
-    const ID = getScope(input);
     const expectedOutput = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
     
     const output = await processCSS(input, {
@@ -94,6 +92,18 @@ describe('css-tools - usedClassNames', () => {
     const output = await processCSS(input, {
       scope: { classNames: false },
       usedClasses: ['class1', 'class2'],
+    });
+
+    expect(output).toBe(expectedOutput);
+  });
+
+  it('should remove unused classes in root media query.', async () => {
+    const input = '.box { display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 10px; color: white; background-color: red;.boxHeader { padding: 5px; background-color: white; color: green; }.boxFooter { padding: 5px; background-color: blue; color: yellow; } }@media screen and (min-width: 30em) and (orientation: landscape) { .class1 { .class2 { color: green; } } }';
+    const expectedOutput = '.box { display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 10px; color: white; background-color: red;.boxHeader { padding: 5px; background-color: white; color: green; }.boxFooter { padding: 5px; background-color: blue; color: yellow; } }';
+
+    const output = await processCSS(input, {
+      scope: { classNames: false },
+      usedClasses: ['box', 'boxHeader', 'boxFooter'],
     });
 
     expect(output).toBe(expectedOutput);

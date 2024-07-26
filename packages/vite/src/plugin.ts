@@ -62,7 +62,7 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
 
         opts = rest;
         astPlugins = _astPlugins;
-        usedClasses = typeof _usedClasses === 'boolean' ? _usedClasses : usedClasses;
+        usedClasses = _usedClasses || usedClasses;
 
         _astPlugins.forEach(({ name, ast }) => {
           Object.entries(ast).forEach(([type, fn]) => {
@@ -99,12 +99,13 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
       name: 'vite-plugin-css-tools',
       async transform(code, id) {
         if (config.css?.lightningcss) return;
+
         if (usedClasses && !/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
-          const usedClasses = await getUsedClasses(id, code, astPlugins, resolvedAstPlugins);
+          const _usedClasses = await getUsedClasses(id, code, astPlugins, resolvedAstPlugins);
 
-          if (!usedClasses) return null;
+          if (!_usedClasses) return null;
 
-          Object.entries(usedClasses).forEach(([ filePath, classes ]) => {
+          Object.entries(_usedClasses).forEach(([ filePath, classes ]) => {
             modulesMap[filePath] = modulesMap[filePath] || {};
 
             if (isHMR && modulesMap[filePath].usedClasses && (JSON.stringify(classes) !== JSON.stringify(modulesMap[filePath].usedClasses))) {
