@@ -34,15 +34,15 @@ export default defineConfig({
 ```
 ## Summary
 * [Options](#options)  
-* [Limitations](#limitations)
 * [astPlugins](#astPlugins)
-* [usedClasses](#usedClasses)
-* [utility](#utility)
-  * [mode](#mode)
+* [Limitations](#limitations)
 
 ## Options
-All options are available as described in the [documentation](https://github.com/pastweb/css-tools), less the `getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
-Also, `usedClasses` is a boolean in case you don't want to use the `astPlugins` in order to remove the unused classa from the css.
+All options are available as described in the [documentation](https://github.com/pastweb/css-tools), with the exception for the following:
+`getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
+`usedClasses` is a boolean (`true` by default) in case you don't want to use the `astPlugins` in order to remove the unused classes from the css.
+The `mode` functionality in the `utility` option is set to `readable` for `development` and `encoded` for `production` by default, and the `output` functionality is not available
+as it is used internally in order to collect all the utilities which will be rendered in the main `css` output file in oder to be available as soon as possible.
 
 ## AstPlugins
 The `AstPlugin` is a plugin which read the javascript source file in order to exctract the classNames used in your source code.
@@ -83,6 +83,7 @@ export default defineConfig({
   ],
 });
 ```
+
 In the example above is described an astPlugin for react.
 * `name`: the plugin name (it gets the framework name by convention);
 * `import`: the import information needed to identify the the ast node (in the above example the react jsx or createEleemnt function) which will be passed the the ast function later.
@@ -94,25 +95,52 @@ How you can see the ast function can be an `async` function and it can returns `
 Even the string composition are supported as like any class composition function like [clsx](https://github.com/lukeed/clsx) for react which follows this parameters syntax.
 To analyze your code you can use [astexplorer](https://astexplorer.net/) selecting `acorn` as ast standard;
 
-## Limitations
-To be able to process the css you need to import the css file in the js file even if you are using a SFC framework.
-The css declared inside the tag `<style>` of a single file component will be not processed.
 example:
-
-```vue
-<script setup lang="ts">
+```svelte
+<script>
+  import clsx from 'clsx';
   import classes from './Panel.module.css';
+
+  const isOpen = false;
+  const fullWidth = true;
+</script>
+
+
+<div class={classes.Panel}>
+  <div class={clsx([classes['panel' + '-' + 'header'], { isOpen }])} fullWidth:fullWidth>
+    <div class={classes['panel-box']}>
+      this is the Panel Header
+    </div>
+  </div>
+  this is the content
+  <div class={clsx([classes['panel-footer'], { isOpen }])}>
+    <div class={classes['panel-box']}>
+      this is the panel footer
+    </div>
+  </div>
+</div>
+```
+How you can see in the example above the `clsx` function coditional assignment as the svelte native conditional assignment are supported.
+This is valid even for vue, which use an internal function for the conditional assignment.
+
+example:
+```vue
+<script setup>
+  import { shallowReactive } from 'vue';
+  import classes from './Panel.module.css';
+
+  const state = shallowReactive({ isOpen: false });
 </script>
 
 <template>
   <div :class="classes.Panel">
-    <div :class="classes['panel-header']">
+    <div :class="[classes['panel' + '-' + 'header'], { isOpen: state.isOpen }]">
       <div :class="classes['panel-box']">
         this is the Panel Header
       </div>
     </div>
     this is the content
-    <div :class="classes['panel-footer']">
+    <div :class="[classes['panel-footer'], { isOpen: state.isOpen }]">
       <div :class="classes['panel-box']">
         this is the panel footer
       </div>
@@ -120,3 +148,7 @@ example:
   </div>
 </template>
 ```
+
+## Limitations
+How you can see in the examples above, to be able to process the css you need to import the css file in the js file even if you are using a SFC framework.
+The css declared inside the tag `<style>` of a single file component will be not processed.
