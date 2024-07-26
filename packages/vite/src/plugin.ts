@@ -4,7 +4,7 @@ import { postCssTools, Options } from '../../postcss';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
-import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
+import { transformWithEsbuild, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import { CssToolsOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
@@ -76,9 +76,10 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
       },
       async resolveId(id, importer, { isEntry }) {
         if (config.css?.lightningcss) return;
+
         if (testFilter && testFilter(id)) {
           const resolved = await this.resolve(id, importer);
-          
+
           if (!resolved) return;
           
           const { id: resolvedId } = resolved;
@@ -186,13 +187,15 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
       },
       async renderChunk(_, chunk) {
         if (config.css?.lightningcss) return;
+        
         const { facadeModuleId, viteMetadata, moduleIds, isEntry } = chunk;
-  
+
         if (facadeModuleId && modulesMap[facadeModuleId]) {
           modulesMap[facadeModuleId].importedCss = viteMetadata?.importedCss || new Set();
         } else if (facadeModuleId && importers[facadeModuleId]) {
           importers[facadeModuleId].importedCss = viteMetadata?.importedCss || new Set();
           importers[facadeModuleId].isEntry = isEntry;
+          
           for (const id of Object.keys(moduleIds)) {
             if (modulesMap[id]) {
               modulesMap[id].importedCss = viteMetadata?.importedCss || new Set();
@@ -203,21 +206,43 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
 
       async generateBundle(_options, bundle) {
         if (config.css?.lightningcss) return;
+
         const dataModules = Object.values(modulesMap);
+        
         for (const [ file, chunk ] of Object.entries(bundle)) {
           const { type, fileName } = chunk;
-  
+
           switch(type) {
             case 'asset':
               const moduleData = getModuleData(dataModules, importers, fileName);
-  
+
               if (moduleData) {
                 appendUtilities(dataModules, moduleData, importers, chunk);
               }
             break;
             case 'chunk':
-              const { facadeModuleId, code }  = chunk;
-              if (facadeModuleId && modulesMap[facadeModuleId] && (!code || code === '\n')) {
+              const { facadeModuleId, code, isEntry, viteMetadata }  = chunk;
+
+              if (isEntry && viteMetadata?.importedCss && viteMetadata?.importedCss.size) {
+                const [ cssFileName ] = Array.from(viteMetadata.importedCss);
+                const cssChunk = bundle[cssFileName] as any;
+                let code = cssChunk.source;
+    
+                dataModules.forEach(({ utilities }) => {
+                  if (!utilities) return;
+                  
+                  Object.values(utilities).forEach(util => {
+                    code = `${code}\n${util}`;
+                  });
+                });
+
+                if (config.build.minify) {
+                  const result = await transformWithEsbuild(code, cssFileName, { loader: 'css', minify: true });
+                  code = result.code;
+                }
+
+                cssChunk.source = code;
+              } else if (facadeModuleId && modulesMap[facadeModuleId] && (!code || code === '\n')) {
                 delete bundle[file];
               }
             break;

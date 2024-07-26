@@ -152,3 +152,4 @@ example:
 ## Limitations
 How you can see in the examples above, to be able to process the css you need to import the css file in the js file even if you are using a SFC framework.
 The css declared inside the tag `<style>` of a single file component will be not processed.
+If `lightningcss` is used in the vite configuration, the plugin will not process the css.

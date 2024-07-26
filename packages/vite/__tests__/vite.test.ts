@@ -40,14 +40,10 @@ describe('cssTools', () => {
   it('should process CSS with viteUtilityModules', async () => {
     const expectedOutput = `.panel {
 
-  .panel-header {
-
-    .panel-box { padding: 0.5em; }
+  .panel-header .panel-box { padding: 0.5em
   }
 
-  .panel-footer {
-
-    .panel-box { padding: 0.3em; }
+  .panel-footer .panel-box { padding: 0.3em
   }
 }
 .background-color\\[_lightgrey\\] { background-color: lightgrey
@@ -75,14 +71,10 @@ describe('cssTools', () => {
   it('should process js and CSS with viteUtilityModules and have CSS Utility Modules into the js file', async () => {
     const expectedCssOutput = `.panel {
 
-  .panel-header {
-
-    .panel-box { padding: 0.5em; }
+  .panel-header .panel-box { padding: 0.5em
   }
 
-  .panel-footer {
-
-    .panel-box { padding: 0.3em; }
+  .panel-footer .panel-box { padding: 0.3em
   }
 }
 .background-color\\[_lightgrey\\] { background-color: lightgrey

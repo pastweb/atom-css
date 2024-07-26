@@ -19,7 +19,8 @@
   "author": "Domenico Pasto",
   "license": "MIT",
   "peerDependencies": {
-    "postcss": "*"
+    "postcss": "*",
+    "vite": "*"
   },
   "dependencies": {
     "@rollup/pluginutils": "^5.1.0",
