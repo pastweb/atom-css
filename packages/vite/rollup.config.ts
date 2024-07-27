@@ -3,7 +3,6 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { OutputOptions, Plugin } from 'rollup';
-import pkg from './package.json';
 
 const input = 'src/index.ts';
 const sourcemap = true;
@@ -39,7 +38,7 @@ const es: OutputOptions = {
 
 export default {
 	input,
-  external: Object.keys(pkg.peerDependencies),
+  external: 'vite',
 	output: [cjs, es],
 	plugins,
 	strictDeprecations: true,
