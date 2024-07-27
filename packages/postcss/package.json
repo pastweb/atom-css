@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/postcss-tools",
   "version": "1.0.0",
-  "description": "handle CSS modules, scoped CSS variables, utilities and nesting selectors",
+  "description": "CSS tool set, modules, scoped CSS variables, utilities and nesting selectors",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "typings": "dist/types/index.d.ts",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pastweb/postcss-utility-modules.git"
+    "url": "git+https://github.com/pastweb/css-tools.git"
   },
   "keywords": [
     "cssmodules",
@@ -24,9 +24,9 @@
   "author": "Domenico Pasto",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pastweb/postcss-utility-modules/issues"
+    "url": "https://github.com/pastweb/css-tools/issues"
   },
-  "homepage": "https://github.com/pastweb/postcss-utility-modules#readme",
+  "homepage": "https://github.com/pastweb/css-tools#readme",
   "dependencies": {
     "@rollup/pluginutils": "^5.1.0"
   },
