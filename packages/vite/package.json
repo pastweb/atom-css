@@ -8,6 +8,14 @@
     "dev": "rollup --config --bundleConfigAsCjs rollup.config.ts --configPlugin typescript -w",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pastweb/css-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pastweb/css-tools/issues"
+  },
+  "homepage": "https://github.com/pastweb/css-tools/tree/master/packages/vite#readme",
   "keywords": [
     "vite",
     "vite-plugin",
