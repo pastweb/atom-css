@@ -65,8 +65,8 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         } else {
           const scopedVars = opts.scope.cssVariables.key && hasScopedVars;
 
-          if (opts.usedClasses && /\.\w+/g.test(rule.selector)) {
-            const className = rule.selector.substring(1);
+          if (opts.usedClasses && /^&?\.\w+/.test(rule.selector)) {
+            const className = rule.selector.replace(/^&?\./, '');
 
             if (!opts.usedClasses.test(className)) {
               // remove unused classes and animations
