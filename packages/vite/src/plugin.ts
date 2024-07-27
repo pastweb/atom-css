@@ -1,6 +1,6 @@
 import path from 'node:path';
 import postcss from 'postcss';
-import { postCssTools, Options } from '../../postcss';
+import { postCssTools, Options } from '@pastweb/postcss-tools';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
