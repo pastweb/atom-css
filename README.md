@@ -96,7 +96,7 @@ shorthand to increse the scope suffix ID:
 
 ### classNames
 The scope ID suffix will be applied to all the classNames and keyframes names into the file.
-It is possible assign a function `(className: string, filePath: string, css: string) => string` for customize the className, this will be used just for the classNames.
+It is possible assign a function `(className: string, filePath: string, css: string) => string` for customize the className, this will be used just for the classNames, in this case the suffix scope will be attached at the end of the returned string.
 By default is `true`;
 as example:
 ```js

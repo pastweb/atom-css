@@ -239,7 +239,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
         const { classNames } = opts.scope;
         // if Utiliy option is set, root could not have any rule nodes
         Object.entries(modules).forEach(([ className, classes ]) => {
-          const suffixedClassName = typeof classNames === 'function' ? classNames(className, filePath, css): `${className}${suffix}`;
+          const suffixedClassName = typeof classNames === 'function' ? `${classNames(className, filePath, css)}${suffix}`: `${className}${suffix}`;
           modules[className] = classes.replace(new RegExp(`^${className}`), suffixedClassName);
         });
 
