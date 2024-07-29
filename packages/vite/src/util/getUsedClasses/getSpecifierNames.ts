@@ -4,7 +4,10 @@ export function getSpecifierNames(node: any, regexp: RegExp, defaultName?: strin
   const specifiers: string[] = [];
 
   for(const specifier of node.specifiers) {
-    if ((specifier.type === NodeType.ImportSpecifier || specifier.type === NodeType.ImportDefaultSpecifier) && regexp.test(specifier.imported.name)) {
+    if (
+      specifier.type === NodeType.ImportSpecifier && regexp.test(specifier.imported.name) ||
+      specifier.type === NodeType.ImportDefaultSpecifier && regexp.test(specifier.local.name)
+    ) {
       specifiers.push(specifier.local.name);
     }
   }

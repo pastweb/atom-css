@@ -125,7 +125,6 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
 
           return null;
         } else if (testFilter && !testFilter(id)) return;
-
         let disableModules = false;
         if (!MODULE_RE.test(id) && (typeof config.css.modules !== 'boolean' || !config.css.modules)) {
           disableModules = true;

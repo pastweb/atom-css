@@ -71,6 +71,8 @@ export default defineConfig({
               
               const [ properties ] = node.arguments[1]; // the ast node representing the props object
               
+              if (!properties) return;
+              
               for (const { name, value } of properties) {
                 if (name === 'className') return value;
               }

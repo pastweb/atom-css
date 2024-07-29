@@ -17,6 +17,7 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
   const runAstFunctions = (node: Node, astFn: { [name: string]: AstFunction }): void => {
     Object.entries(astFn).forEach(async ([ name, fn ]) => {
       if (!specifiers[name] || !specifiers[name].size) return;
+
       const response = fn(node, specifiers[name], id);
 
       if (response instanceof Promise) queue.push(response);
