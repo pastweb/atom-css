@@ -1,6 +1,6 @@
 # CSS Tools
 A set of tools inspired to [CSS Modules] and [Tailwind] CSS framework.
-* Redulce the css size nesting the selectors where convenient.
+* Reduce the css size nesting the selectors where convenient.
 * Handle CSS modules.
 * Scopes CSS variables.
 * Calculate utilities on the fly and assign them in the CSS module object.

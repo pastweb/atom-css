@@ -5,13 +5,13 @@ A [Vite] plugin inspired to [CSS Modules] and [Tailwind] CSS framework.
 [css modules]: https://github.com/css-modules/css-modules
 [tailwind]: https://github.com/tailwindlabs/tailwindcss
 
-* Redulce the css size nesting the selectors where convenient.
+* Reduce the css size nesting the selectors where convenient.
 * Handle CSS modules.
 * Scopes CSS variables.
 * Calculate utilities on the fly and assign them in the CSS module object.
 * Remove the unused classes.
 
-Fore more info about tools and the options check the [CSS Tools](https://github.com/pastweb/css-tools) page.
+For more info about tools and the options check the [CSS Tools](https://github.com/pastweb/css-tools) page.
 
 ## install
 ```bash
@@ -47,7 +47,7 @@ as it is used internally in order to collect all the utilities which will be ren
 ## AstPlugins
 The `AstPlugin` is a plugin which read the javascript source file in order to exctract the classNames used in your source code.
 This list o classes are later passes to `css-tools` in order to remove the unused classes from the resultant css code.
-There are alredy internal plugins in order to provide this functionality for the most used Front End frameworks such as [react](https://github.com/facebook/react), [preact](https://github.com/preactjs/preact), [vue](https://github.com/vuejs) and [svelte](https://github.com/sveltejs/svelte).
+There are already internal plugins in order to provide this functionality for the most used Front End frameworks such as [react](https://github.com/facebook/react), [preact](https://github.com/preactjs/preact), [vue](https://github.com/vuejs) and [svelte](https://github.com/sveltejs/svelte).
 
 You can check the [example](https://github.com/pastweb/css-tools/tree/master/packages/vite/examples/rimmel) for [rimmel](https://github.com/ReactiveHTML/rimmel).
 
@@ -119,7 +119,7 @@ example:
   </div>
 </div>
 ```
-How you can see in the example above the `clsx` function coditional assignment as the svelte native conditional assignment are supported.
+How you can see in the example above the `clsx` function conditional assignment as the svelte native conditional assignment are supported.
 This is valid even for vue, which use an internal function for the conditional assignment.
 
 example:
