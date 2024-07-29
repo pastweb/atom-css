@@ -13,10 +13,7 @@ export default defineConfig({
         },
         ast: {
           ['TaggedTemplateExpression'](node, specifiers) {
-            const specifier = specifiers.has(node.tag.name) ? node.tag.name : '';
-    
-            if (!specifier) return;
-    
+            if (!specifiers.has(node.tag.name)) return;
             return node;
           },
         },
