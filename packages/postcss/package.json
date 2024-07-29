@@ -27,6 +27,11 @@
     "url": "https://github.com/pastweb/css-tools/issues"
   },
   "homepage": "https://github.com/pastweb/css-tools#readme",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "@rollup/pluginutils": "^5.1.0"
   },

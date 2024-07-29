@@ -5,11 +5,6 @@
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/types/index.d.ts",
-  "scripts": {
-    "build": "rimraf dist && rimraf doc && rollup --bundleConfigAsCjs --config rollup.config.ts --configPlugin typescript",
-    "dev": "rollup --config --bundleConfigAsCjs rollup.config.ts --configPlugin typescript -w",
-    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pastweb/css-tools.git"
@@ -31,6 +26,16 @@
   "peerDependencies": {
     "postcss": "*",
     "vite": "*"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rimraf dist && rimraf doc && rollup --bundleConfigAsCjs --config rollup.config.ts --configPlugin typescript",
+    "dev": "rollup --config --bundleConfigAsCjs rollup.config.ts --configPlugin typescript -w",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "@pastweb/postcss-tools": "^1.0.1",
