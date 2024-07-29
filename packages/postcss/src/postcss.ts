@@ -68,7 +68,14 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
           if (opts.usedClasses && /^&?\.\w+/.test(rule.selector)) {
             const className = rule.selector.replace(/^&?\./, '');
 
-            if (!opts.usedClasses.test(className)) {
+            let used = false;
+            for (const clRE of opts.usedClasses) {
+              if (clRE.test(className)) {
+                used = true;
+              }
+            }
+
+            if (!used) {
               // remove unused classes and animations
               rule.walkDecls(decl => {
                 const { prop, value } = decl;

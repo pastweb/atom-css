@@ -29,7 +29,7 @@ export function resolveOptions(options: Options): ResolvedOptions {
     selectors: options.selectors || 'nested',
     scope: { ...scope, cssVariables } as ResolvedScopeOptions,
     ...options.usedClasses && options.usedClasses.length ? {
-      usedClasses: new RegExp(Array.from(new Set(options.usedClasses)).join('|')),
+      usedClasses: Array.from(new Set(options.usedClasses)).map(cl => new RegExp(cl)),
     } : {},
     utility: options.utility ? typeof options.utility === 'boolean' ? DEFAULT_UTILITY_OPTIONS : {
       ...DEFAULT_UTILITY_OPTIONS,

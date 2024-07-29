@@ -85,7 +85,7 @@ export interface ResolvedOptions {
   };
   selectors: 'flat' | 'nested';
   scope: ResolvedScopeOptions;
-  usedClasses?: RegExp;
+  usedClasses?: RegExp[];
   utility: boolean | ResolvedUtilityOptions;
   getModules: (filePath: string, modules: Record<string, string>) => void | Promise<void>;
 };
