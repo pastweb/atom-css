@@ -4,6 +4,7 @@
   "description": "plugin for Css Utility Modules",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rimraf dist && rimraf doc && rollup --bundleConfigAsCjs --config rollup.config.ts --configPlugin typescript",
     "dev": "rollup --config --bundleConfigAsCjs rollup.config.ts --configPlugin typescript -w",
