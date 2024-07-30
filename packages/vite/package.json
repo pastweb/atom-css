@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/vite-plugin-css-tools",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "plugin for Css Utility Modules",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",

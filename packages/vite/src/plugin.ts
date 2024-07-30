@@ -1,10 +1,10 @@
-import path from 'node:path';
+import { resolve, dirname, posix } from 'node:path';
 import postcss from 'postcss';
 import { postCssTools, Options } from '@pastweb/postcss-tools';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
-import { transformWithEsbuild, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
+import { transformWithEsbuild, PluginOption, ResolvedConfig, ViteDevServer } from 'vite';
 import { CssToolsOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
@@ -13,7 +13,7 @@ async function processCSS (input: string, opts: Options, filePath: string) {
   return result.css;
 };
 
-export function cssTools(options: CssToolsOptions = {}): Plugin[] {
+export function cssTools(options: CssToolsOptions = {}): PluginOption {
   let importers: Record<string, ImporterData> = {};
   let modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
@@ -26,7 +26,7 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
   let server: ViteDevServer;
   let isHMR: boolean;
 
-  return [
+  const plugins: PluginOption = [
     {
       name: 'vite-plugin-css-tools-pre',
       enforce: 'pre',
@@ -74,26 +74,21 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
         const { include, exclude } = opts.test || {};
         testFilter = (include || exclude) && createFilter(include, exclude);
       },
+      configureServer(_server) { server = _server; },
       async resolveId(id, importer, { isEntry }) {
         if (config.css?.lightningcss) return;
 
-        if (testFilter && testFilter(id)) {
-          const resolved = await this.resolve(id, importer);
-
-          if (!resolved) return;
+        if (testFilter && testFilter(id) && importer) {
+          const resolvedId = resolve(dirname(importer), id);
           
-          const { id: resolvedId } = resolved;
           modulesMap[resolvedId] = modulesMap[resolvedId] || {};
           modulesMap[resolvedId].isEntry = isEntry;
           modulesMap[resolvedId].importedCss = new Set();
-          
-          if (importer) {
-            modulesMap[resolvedId].importer = importer;
-            importers[importer] = { id: resolvedId, importedCss: new Set() };  
-          }
+
+          modulesMap[resolvedId].importer = importer;
+          importers[importer] = { id: resolvedId, importedCss: new Set() };
         }
       },
-      configureServer(_server) { server = _server; },
     },
     {
       name: 'vite-plugin-css-tools',
@@ -170,7 +165,7 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
 
           const code = [
             `import { updateStyle as __vite__updateStyle, removeStyle as __vite__removeStyle } from ${JSON.stringify(
-              path.posix.join(config.base, CLIENT_PUBLIC_PATH),
+              posix.join(config.base, CLIENT_PUBLIC_PATH),
             )}`,
             `const __vite__id = ${JSON.stringify(id)}`,
             `const __vite__css = ${JSON.stringify(css)}`,
@@ -251,4 +246,6 @@ export function cssTools(options: CssToolsOptions = {}): Plugin[] {
       },
     },
   ];
+
+  return plugins;
 }

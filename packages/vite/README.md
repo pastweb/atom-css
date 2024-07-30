@@ -73,8 +73,8 @@ export default defineConfig({
               
               if (!properties) return;
               
-              for (const { name, value } of properties) {
-                if (name === 'className') return value;
+              for (const { type, name, value } of properties) {
+                if (type === 'Property' && name === 'className') return value;
               }
             }
           },
