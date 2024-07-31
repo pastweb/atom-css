@@ -492,14 +492,14 @@ describe('css-tools - utility', () => {
     expect(getModules).toHaveBeenCalledTimes(1);
     expect(cssFileName).toBe('unknown');
     expect(Object.keys(cssModules).length).toBe(4);
-    expect(cssModules[`panel`]).toBe(`panel media[_max-width-300px][background-color][_green] background-color[_white]`);
+    expect(cssModules[`panel`]).toBe(`panel media[_\\(max-width-300px\\)][background-color][_green] background-color[_white]`);
     expect(cssModules[`panel-box`]).toBe(`panel-box padding[_1em] font-size[_1em]`);
     expect(cssModules[`panel-header`]).toBe(`panel-header background-color[_grey]`);
     expect(cssModules[`panel-footer`]).toBe(`panel-footer background-color[_lightgrey]`);
     expect(getUtilityModules).toHaveBeenCalledTimes(1);
     expect(utilityFileName).toBe('unknown');
     expect(Object.keys(utilityModules).length).toBe(6);
-    expect(utilityModules[`media[_max-width-300px][background-color][_green]`]).toBe(`.media\\[_max-width-300px\\]\\[background-color\\]\\[_green\\] {\n @media (max-width: 300px) { background-color: green\n }\n}`);
+    expect(utilityModules[`media[_\\(max-width-300px\\)][background-color][_green]`]).toBe(`.media\\[_\\(max-width-300px\\)\\]\\[background-color\\]\\[_green\\] {\n @media (max-width: 300px) { background-color: green\n }\n}`);
     expect(utilityModules[`background-color[_white]`]).toBe(`.background-color\\[_white\\] { background-color: white\n}`);
     expect(utilityModules[`padding[_1em]`]).toBe(`.padding\\[_1em\\] { padding: 1em\n}`);
     expect(utilityModules[`font-size[_1em]`]).toBe(`.font-size\\[_1em\\] { font-size: 1em\n}`);

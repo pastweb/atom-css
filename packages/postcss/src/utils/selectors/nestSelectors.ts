@@ -3,7 +3,22 @@ import { AT_RULES, SPLIT_SELECTOR_RE } from './constants';
 import { ChildNode, Rule, Root, AtRule } from 'postcss';
 
 // Split selector by combinators and special characters, capturing pseudo-classes and pseudo-elements
-const splitSelector = (selector: string) => selector.replace(/ +/, ' ').trim().split(SPLIT_SELECTOR_RE);
+const splitSelector = (selector: string) => {
+  const parts = selector.replace(/ +/, ' ').trim().split(SPLIT_SELECTOR_RE);
+  const selectors: string[] = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    if (!parts[i]) continue;
+    if (parts[i] === ' ') {
+      selectors.push(` ${parts[i + 1]}`);
+      i++;
+    } else {
+      selectors.push(parts[i]);
+    }
+  }
+
+  return selectors;
+};
 // Normalize selectors, handling parent reference and removing leading spaces
 const normalizeSelectors = (selectors: string[]) => selectors.map(s => /^ /.test(s) ? s.replace(/^ /, '') : /^&/.test(s) ? s : `&${s}`);
 

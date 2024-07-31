@@ -22,13 +22,13 @@ export function getUtilityClassName(
   
   switch(mode) {
     case 'readable':
-      const _value = value.replace(DOT_PREFIX_RE, '0-').replace(/( +(,|[()])?)|((,|[()])? +)/g, '_');
+      const _value = value.replace(DOT_PREFIX_RE, '0-').replace(/( +(,|[()])?)|((,|[()])? +)/g, '_').replace(/[#().%]/g, '\\$&');
       if (isAtRule) {
         className = `${_name}${_params ? `[_${
           _params.replace(DOT_PREFIX_RE, '0_')
             .replace(/,/g, '_')
             .replace(/:? +/g, '-')
-            .replace(/[()]/g, '')
+            .replace(/[#().%]/g, '\\$&')
         }]` : ''}[${prop}][_${_value}]`;
       } else {
         className = `${prop}${`[_${_value}]`}`;
