@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/vite-plugin-css-tools",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "plugin for Css Utility Modules",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -38,7 +38,7 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@pastweb/postcss-tools": "^1.0.2",
+    "@pastweb/postcss-tools": "^1.0.3",
     "@rollup/pluginutils": "^5.1.0",
     "acorn": "^8.12.1",
     "acorn-walk": "^8.3.3"

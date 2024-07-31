@@ -28,7 +28,7 @@ export function resolveOptions(options: CssToolsOptions, modulesMap: ModulesMap,
      {
       utility: {
         ...options.utility,
-        mode: options.utility.mode ? options.utility.mode : mode === 'development' ? 'readable' : 'encoded',
+        mode: options.utility.mode ? options.utility.mode : mode === 'development' ? 'semireadable' : 'encoded',
         output: false,
         getUtilityModules(filePath, modules) {
           modulesMap[filePath] = modulesMap[filePath] || {};
@@ -37,7 +37,7 @@ export function resolveOptions(options: CssToolsOptions, modulesMap: ModulesMap,
       },
     } : {
       utility: {
-        mode: mode === 'development' ? 'readable' : 'encoded',
+        mode: mode === 'development' ? 'semireadable' : 'encoded',
         output: false,
         getUtilityModules(filePath, modules) {
           modulesMap[filePath] = modulesMap[filePath] || {};
