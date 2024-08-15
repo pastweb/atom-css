@@ -82,6 +82,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
           const resolvedId = resolve(dirname(importer), id);
           
           modulesMap[resolvedId] = modulesMap[resolvedId] || {};
+          modulesMap[resolvedId].usedClasses = [];
           modulesMap[resolvedId].isEntry = isEntry;
           modulesMap[resolvedId].importedCss = new Set();
 

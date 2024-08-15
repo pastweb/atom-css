@@ -11,6 +11,7 @@ export function resolveOptions(options: CssToolsOptions, modulesMap: ModulesMap,
   const classNames = generateScopedName;
 
   return {
+    usedClasses: true,
     ...options,
     ...generateScopedName ? {
       scope: {
