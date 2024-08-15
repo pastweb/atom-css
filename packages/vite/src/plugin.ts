@@ -79,7 +79,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
         if (config.css?.lightningcss) return;
 
         if (testFilter && testFilter(id) && importer) {
-          const resolvedId = resolve(dirname(importer), id);
+          const resolvedId = resolve(dirname(importer), /\.html$/.test(importer) ? `.${id}` : id);
           
           modulesMap[resolvedId] = modulesMap[resolvedId] || {};
           modulesMap[resolvedId].usedClasses = [];
