@@ -1,8 +1,6 @@
 import type { Rule, AtRule } from 'postcss';
 
 export function removeRuleIfEmpty(
-  scoped: string,
-  unscoped: string,
   rule: Rule | AtRule,
   modules: Record<string, string>,
 ): void {
@@ -13,6 +11,6 @@ export function removeRuleIfEmpty(
   rule.remove();
 
   if (parent && parent.selector && parent.selector.startsWith('.')) {
-    removeRuleIfEmpty(scoped, unscoped, parent, modules);
+    removeRuleIfEmpty(parent, modules);
   }
 }

@@ -1,6 +1,5 @@
 import * as postcss from 'postcss';
 import { getUtilityClassName } from './getUtilityClassName';
-import { extractClassName } from './extractClassName';
 import { removeRuleIfEmpty } from './removeRuleIfEmpty';
 import { VENDORS_RE } from '../constants';
 import type { Declaration, Rule, AtRule } from 'postcss';
@@ -21,7 +20,7 @@ export function processRules(
   rules.forEach(rule => {
     rule.each(node => {
       if (node.type !== 'decl') return;
-  
+
       const decl = node as Declaration;
       const { prop, value } = decl;
       
@@ -38,12 +37,13 @@ export function processRules(
   
   const [ first ] = rules as AtRule[];
   const atRule = isAtRule ? postcss.atRule({ name: first.name, params: first.params }) : false;
-  const { scoped, unscoped } = extractClassName(selector);
+  const classNameMatch = selector.match(/\.([\w-]+)/); // Extract class name from the selector
+  const className = classNameMatch![0].replace(/^\./, '');
 
   Object.entries(propertyDeclarations).forEach(([ propName, properties ]) => {
     const values = Object.entries(properties);
     const utilityClassName = getUtilityClassName(mode, propName, values[0][1], scopeLength, isAtRule ? first : undefined);
-    modules[unscoped] = !modules[unscoped] ? `${scoped} ${utilityClassName}` : `${modules[unscoped]} ${utilityClassName}`;
+    modules[className] = !modules[className] ? `${className} ${utilityClassName}` : `${modules[className]} ${utilityClassName}`;
 
     if (utilityModules[utilityClassName]) return;
 
@@ -60,5 +60,5 @@ export function processRules(
     utilityModules[utilityClassName] = utilityRule;
   });
 
-  rules.forEach(rule=> removeRuleIfEmpty(scoped, unscoped, rule, modules));
+  rules.forEach(rule=> removeRuleIfEmpty(rule, modules));
 }

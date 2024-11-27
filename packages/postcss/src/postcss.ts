@@ -15,7 +15,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
   const varScope = opts.scope.cssVariables.key && getScope(opts.scope.cssVariables.key) || '';
 
   return {
-    postcssPlugin: 'postcss-utility-modules',
+    postcssPlugin: 'postcss-tools',
     // The Once method is called once for the root node at the end of the processing
     async Once(root, { result }) {
       const filePath = result.opts.from || 'unknown';
@@ -47,22 +47,27 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
 
       // nest selectors
       nestSelectors(root);
+
+      // the :root selector could be declarted at any point of the source code
+      root.walkRules(rule => {
+        if (rule.selector !== ':root' || !opts.scope.cssVariables.key) return;
+
+        // Generate unique id scope for CSS variables in :root
+        rule.walkDecls(decl => {
+          if (!decl.prop.startsWith('--')) return;
+          if (varsFilter && !varsFilter(decl.prop)) return;
+
+          const originalProp = decl.prop;
+          const suffixedProp = `${originalProp}${varScope}`;
+          cssVarModules[originalProp] = suffixedProp;
+          decl.prop = suffixedProp;
+        });
+
+        hasScopedVars = true;
+      });
       
       root.walkRules(rule => {
-        if (rule.selector === ':root' && opts.scope.cssVariables.key) {
-          // Generate unique id scope for CSS variables in :root
-          rule.walkDecls(decl => {
-            if (!decl.prop.startsWith('--')) return;
-            if (varsFilter && !varsFilter(decl.prop)) return;
-
-            const originalProp = decl.prop;
-            const suffixedProp = `${originalProp}${varScope}`;
-            cssVarModules[originalProp] = suffixedProp;
-            decl.prop = suffixedProp;
-          });
-
-          hasScopedVars = true;
-        } else {
+        if (rule.selector !== ':root') {
           const scopedVars = opts.scope.cssVariables.key && hasScopedVars;
 
           if (opts.usedClasses && /^&?\.\w+/.test(rule.selector)) {
@@ -244,17 +249,17 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
 
       if (opts.scope.classNames) {
         const { classNames } = opts.scope;
-        // if Utiliy option is set, root could not have any rule nodes
+        
         Object.entries(modules).forEach(([ className, classes ]) => {
           const suffixedClassName = typeof classNames === 'function' ? `${classNames(className, filePath, css)}${suffix}`: `${className}${suffix}`;
           modules[className] = classes.replace(new RegExp(`^${className}`), suffixedClassName);
         });
 
         root.walkRules(rule => {
-          rule.selector = rule.selector.replace(CLASS_NAME_RE, (match, prefix, globalContent, className) => {
-            if (globalContent) return globalContent; // Return just the class name without :global
-            if (!className) return match;
+          rule.selector = rule.selector.replace(CLASS_NAME_RE, (_match, isGlobal, className) => {
+            if (isGlobal) return className; // Return just the class name without :global
             
+            className = className.replace(/^\./, '');
             const suffixedClassName = typeof classNames === 'function' ? classNames(className, filePath, css): `${className}${suffix}`;
             
             if (!modules[className]) modules[className] = suffixedClassName;

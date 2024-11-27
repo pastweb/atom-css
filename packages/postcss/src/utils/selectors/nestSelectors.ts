@@ -4,7 +4,7 @@ import { ChildNode, Rule, Root, AtRule } from 'postcss';
 
 // Split selector by combinators and special characters, capturing pseudo-classes and pseudo-elements
 const splitSelector = (selector: string) => {
-  const selectors: string[] = selector.includes(',') ? [ selector ] : [];
+  const selectors: string[] = /:global\s*\(/g.test(selector) || selector.includes(',') ? [ selector ] : [];
   
   if (selectors.length) return selectors;
 
