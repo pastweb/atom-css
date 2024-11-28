@@ -9,7 +9,7 @@ A [Vite] plugin inspired to [CSS Modules] and [Tailwind] CSS framework.
 * Handle CSS modules.
 * Scopes CSS variables.
 * Calculate utilities on the fly and assign them in the CSS module object.
-* Remove the unused classes.
+* Treeshake CSS removing the unused classes.
 
 For more info about tools and the options check the [CSS Tools](https://github.com/pastweb/css-tools) page.
 
@@ -41,8 +41,8 @@ export default defineConfig({
 All options are available as described in the [documentation](https://github.com/pastweb/css-tools), with the exception for the following:
 `getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
 `usedClasses` is a boolean (`true` by default) in case you don't want to use the `astPlugins` in order to remove the unused classes from the css.
-The `mode` functionality in the `utility` option is set to `readable` for `development` and `encoded` for `production` by default, and the `output` functionality is not available
-as it is used internally in order to collect all the utilities which will be rendered in the main `css` output file in oder to be available as soon as possible.
+The `mode` functionality in the `utility` option is set to `semireadable` for `development` and `encoded` for `production` by default, and the `output` functionality is not available
+as it is used internally in order to collect all the utilities which will be rendered in the main `css` output file in oder to be available as soon as possible for `production`, and will be duplicated for each module in `development` as in this modality the vite dev server provide the code to the browser, module by module.
 
 ## AstPlugins
 The `AstPlugin` is a plugin which read the javascript source file in order to exctract the classNames used in your source code.
