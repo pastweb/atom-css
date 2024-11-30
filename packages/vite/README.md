@@ -5,6 +5,7 @@ A [Vite] plugin inspired to [CSS Modules] and [Tailwind] CSS framework.
 [css modules]: https://github.com/css-modules/css-modules
 [tailwind]: https://github.com/tailwindlabs/tailwindcss
 
+* Zero configuration
 * Reduce the css size nesting the selectors where convenient.
 * Handle CSS modules.
 * Scopes CSS variables.
@@ -28,12 +29,13 @@ import { cssTools } from '@pastweb/vite-plugin-css-tools';
 export default defineConfig({
   plugins: [
     preact(), // or any other framework plugin
-    cssTools({ ...options }),
+    cssTools(), // cssTools({ ...options }),
   ],
 })
 ```
 ## Summary
-* [Options](#options)  
+* [Options](#options)
+* [cl function](#cl-function)
 * [astPlugins](#astPlugins)
 * [Limitations](#limitations)
 
@@ -42,7 +44,42 @@ All options are available as described in the [documentation](https://github.com
 `getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
 `usedClasses` is a boolean (`true` by default) in case you don't want to use the `astPlugins` in order to remove the unused classes from the css.
 The `mode` functionality in the `utility` option is set to `semireadable` for `development` and `encoded` for `production` by default, and the `output` functionality is not available
-as it is used internally in order to collect all the utilities which will be rendered in the main `css` output file in oder to be available as soon as possible for `production`, and will be duplicated for each module in `development` as in this modality the vite dev server provide the code to the browser, module by module.
+as it is used internally in order to collect all the utilities which will be rendered in the main `css` output file in oder to be available as soon as possible for `production`, and will be a separated style tag (`<style id="css-tools-utilities"></style>`) for `development` modality.
+
+## cl function
+As often happen, a single Element could need to define more then one class and, as the classes are splitted in atomic utilities we coiuld see a lot of utilities classes duplication.
+To avoid this problem you cas use the `cl` function as in the example below:
+
+**Example:**
+```tsx
+import { useState } from 'react';
+import { cl } from '@pastweb/tools';
+import classes from './Panel.module.css';
+
+const cls = cl.setClasses(classes)''
+
+export default function Panel() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className={cls('Panel')}>
+      <div className={cls('panel-header', { isOpen })}>
+        <div className={cls('panel-box')}>
+          this is the Panel Header
+        </div>
+      </div>
+      this is the content
+      <div className={cls('panel-footer', { isOpen })}>
+        <div className={cls('panel-box')}>
+          this is the panel footer
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+For more info about the `cl` function click [here](https://github.com/pastweb/tools?tab=readme-ov-file#cl).
 
 ## AstPlugins
 The `AstPlugin` is a plugin which read the javascript source file in order to exctract the classNames used in your source code.
