@@ -14,8 +14,8 @@ async function processCSS (input: string, opts: Options, filePath: string) {
 };
 
 export function cssTools(options: CssToolsOptions = {}): PluginOption {
-  let importers: Record<string, ImporterData> = {};
-  let modulesMap: ModulesMap = {};
+  const importers: Record<string, ImporterData> = {};
+  const modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
   let generateScopedName: (name: string, filePath: string, css: string) => string;
   let opts: Options;
@@ -25,6 +25,9 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
   let config: ResolvedConfig;
   let server: ViteDevServer;
   let isHMR: boolean;
+  const entryModules = new Set<string>();
+  const getUtilitiesCssCode = () => Object.values(Object.values(modulesMap).reduce((acc, { utilities }) => ({ ...acc, ...utilities }), {})).join('\n');
+  const updateUtilitiesTag = () => server.ws.send('css-tools:update-utilities-css', getUtilitiesCssCode());
 
   const plugins: PluginOption = [
     {
@@ -32,6 +35,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
       enforce: 'pre',
       config(config) {
         if (config.css?.lightningcss) return;
+        
         if (config.css && typeof config.css.modules === 'object' && typeof config.css.modules.generateScopedName === 'function') {
           generateScopedName = config.css.modules.generateScopedName;
         }
@@ -45,14 +49,11 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
         };
       },
       configResolved(_config) {
-        isHMR = _config.command === 'serve' && _config.mode !== 'production';
         config = _config;
-      },
-      buildStart() {
+        
         if (config.css?.lightningcss) return;
-        // Ensure a new cache for every build (i.e. rebuilding in watch mode)
-        importers = {};
-        modulesMap = {};
+        
+        isHMR = config.command === 'serve' && config.mode !== 'production';
 
         const {
           astPlugins: _astPlugins,
@@ -74,9 +75,19 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
         const { include, exclude } = opts.test || {};
         testFilter = (include || exclude) && createFilter(include, exclude);
       },
-      configureServer(_server) { server = _server; },
+      configureServer(_server) {
+        server = _server;
+
+        if (!opts.utility) return;
+
+        server.ws.on('css-tools:initial-utilities-css', () => updateUtilitiesTag());
+      },
       async resolveId(id, importer, { isEntry }) {
         if (config.css?.lightningcss) return;
+
+        if (isHMR && !/node_modules/g.test(id) && importer && /\.html$/.test(importer)) {
+          entryModules.add(resolve(dirname(importer), `.${id}`));
+        }
 
         if (testFilter && testFilter(id) && importer) {
           const resolvedId = resolve(dirname(importer), /\.html$/.test(importer) ? `.${id}` : id);
@@ -95,6 +106,24 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
       name: 'vite-plugin-css-tools',
       async transform(code, id) {
         if (config.css?.lightningcss) return;
+
+        if (isHMR && opts.utility && entryModules.has(id)) {
+          const utilitiesHMR = [
+            `if (import.meta.hot) {`,
+            `  const style = document.createElement('style');`,
+            `  style.id = 'css-tools-utilities';`,
+            `  document.head.append(style);`,
+            ``,
+            `  // Initial CSS injection on server start`,
+            `  import.meta.hot.send('css-tools:initial-utilities-css');`,
+            ``,
+            `  // Dynamic CSS updates on changes`,
+            `  import.meta.hot.on('css-tools:update-utilities-css', css => style.textContent = css);`,
+            `}`,
+          ].join('\n');
+
+          return { code: `${code}\n${utilitiesHMR}`, map: { mappings: '' } };
+        }
 
         if (usedClasses && !/node_modules/.test(id) && (JS_TYPES_RE.test(id) || FRAMEWORK_TYPE.test(id))) {
           const _usedClasses = await getUsedClasses(id, code, astPlugins, resolvedAstPlugins);
@@ -121,7 +150,9 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
 
           return null;
         } else if (testFilter && !testFilter(id)) return;
+        
         let disableModules = false;
+        
         if (!MODULE_RE.test(id) && (typeof config.css.modules !== 'boolean' || !config.css.modules)) {
           disableModules = true;
         }
@@ -150,7 +181,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
         if (config.css?.lightningcss) return;
         if (testFilter && !testFilter(id)) return;
 
-        const { modules } = modulesMap[id];
+        const { modules, css } = modulesMap[id];
 
         const modulesCode = dataToEsm(modules, { namedExports: true, preferConst: true });
 
@@ -158,11 +189,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
         if (config.command === 'serve' && options?.ssr) return modulesCode;
 
         if (isHMR) {
-          let { css, utilities } = modulesMap[id];
-
-          if (utilities) {
-            css = `${css}\n${Object.values(utilities).reduce((acc, u) => `${acc}${u}\n`, '')}`;
-          }
+          if (opts.utility) updateUtilitiesTag();
 
           const code = [
             `import { updateStyle as __vite__updateStyle, removeStyle as __vite__removeStyle } from ${JSON.stringify(
