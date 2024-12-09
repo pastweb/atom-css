@@ -1,4 +1,4 @@
-# Atom CSS plugin for Vite
+# Atomic CSS plugin for Vite
 A [Vite] plugin inspired to [CSS Modules] and [Tailwind] CSS framework.
 
 [vite]: https://github.com/vitejs/vite
@@ -12,24 +12,24 @@ A [Vite] plugin inspired to [CSS Modules] and [Tailwind] CSS framework.
 * Calculate atomic css utilities on the fly and assign them in the CSS module object.
 * Treeshake CSS removing the unused classes.
 
-For more info about tools and the options check the [Atom CSS](https://github.com/pastweb/atom-css) page.
+For more info about tools and the options check the [Atomic CSS](https://github.com/pastweb/atomic-css) page.
 
 ## install
 ```bash
-npm i -D @pastweb/atom-css-vite
+npm i -D @pastweb/atomic-css-vite
 ```
 
 ## Usage
 ```js
 import { defineConfig } from 'vite'
 import preact from '@preact/preset-vite'
-import { atomCss } from '@pastweb/atom-css-vite';
+import { atomicCss } from '@pastweb/atomic-css-vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     preact(), // or any other framework plugin
-    atomCss(), // atomCss({ ...options }),
+    atomicCss(), // atomCss({ ...options }),
   ],
 })
 ```
@@ -40,7 +40,7 @@ export default defineConfig({
 * [Limitations](#limitations)
 
 ## Options
-All options are available as described in the [documentation](https://github.com/pastweb/atom-css), with the exception for the following:
+All options are available as described in the [documentation](https://github.com/pastweb/atomic-css), with the exception for the following:
 `getModules`, `getUtilityModules` and `test` which are used internally in the vite plugin.
 `usedClasses` is a boolean (`true` by default) in case you don't want to use the `astPlugins` in order to remove the unused classes from the css.
 The `mode` functionality in the `utility` option is set to `semireadable` for `development` and `encoded` for `production` by default, and the `output` functionality is not available
@@ -83,7 +83,7 @@ For more info about the `cl` function click [here](https://github.com/pastweb/to
 
 ## AstPlugins
 The `AstPlugin` is a plugin which read the javascript source file in order to exctract the classNames used in your source code.
-This list o classes are later passes to `atom-css` in order to remove the unused classes from the resultant css code.
+This list o classes are later passes to `atomic-css` in order to remove the unused classes from the resultant css code.
 There are already internal plugins in order to provide this functionality for the most used Front End frameworks such as [react](https://github.com/facebook/react), [preact](https://github.com/preactjs/preact), [vue](https://github.com/vuejs) and [svelte](https://github.com/sveltejs/svelte).
 
 You can check the [example](https://github.com/pastweb/atom-css/tree/master/packages/vite/examples/rimmel) for [rimmel](https://github.com/ReactiveHTML/rimmel).
@@ -92,7 +92,7 @@ astPlugin example:
 ```js
 export default defineConfig({
   plugins: [
-    atomCss({
+    atomicCss({
       astPlugins: [
         {
           name: 'react',

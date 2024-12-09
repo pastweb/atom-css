@@ -17,7 +17,7 @@ const processCSS = async (input: string) => {
   return result.css;
 };
 
-describe('atom-css - nestSelectors', () => {
+describe('atomic-css - nestSelectors', () => {
   it('should nest root selectors correctly', async () => {
     const input = `.Panel { color: black; background-color: white; }.Panel .panel-box { padding: 1em; font-size: 1em;}.Panel .panel-header { background-color: grey; }.Panel .panel-header .panel-box { padding: 0.5em; }.Panel .panel-footer { background-color: lightgrey; }.Panel .panel-footer .panel-box { padding: 0.3em; }`;
     const expectedOutput = `.Panel { color: black; background-color: white;.panel-box { padding: 1em; font-size: 1em;}.panel-header { background-color: grey;.panel-box { padding: 0.5em; } }.panel-footer { background-color: lightgrey;.panel-box { padding: 0.3em; } } }`;

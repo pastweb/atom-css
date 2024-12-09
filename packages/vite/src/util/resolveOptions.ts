@@ -1,9 +1,9 @@
 import { CSS_LANGS_RE } from '../constants';
 import type { ResolvedConfig } from 'vite';
 import { plugins } from './getUsedClasses';
-import type { AtomCssOptions, ResolvedCssUtilityOptions, ModulesMap } from '../types';
+import type { AtomicCssOptions, ResolvedCssUtilityOptions, ModulesMap } from '../types';
 
-export function resolveOptions(options: AtomCssOptions, modulesMap: ModulesMap, config: ResolvedConfig, generateScopedName?: (name: string, filePath: string, css: string) => string): ResolvedCssUtilityOptions {
+export function resolveOptions(options: AtomicCssOptions, modulesMap: ModulesMap, config: ResolvedConfig, generateScopedName?: (name: string, filePath: string, css: string) => string): ResolvedCssUtilityOptions {
   const { mode } = config;
   const test = { include: CSS_LANGS_RE };
   const astPlugins = [ ...plugins, ...options.astPlugins || [] ];

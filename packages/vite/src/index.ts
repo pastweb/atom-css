@@ -1,3 +1,3 @@
-export { atomCss } from './plugin';
-export type { AtomCssOptions } from './types';
+export { atomicCss } from './plugin';
+export type { AtomicCssOptions } from './types';
 export type { AstPlugin } from './util';

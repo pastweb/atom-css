@@ -15,7 +15,7 @@ export const plugin: PluginCreator<Options> = (options: Options = {}) => {
   const varScope = opts.scope.cssVariables.key && getScope(opts.scope.cssVariables.key) || '';
 
   return {
-    postcssPlugin: 'postcss-tools',
+    postcssPlugin: 'atomic-css',
     // The Once method is called once for the root node at the end of the processing
     async Once(root, { result }) {
       const filePath = result.opts.from || 'unknown';

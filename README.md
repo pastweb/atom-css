@@ -1,4 +1,4 @@
-# Atom CSS
+# Atomic CSS
 A set of tools inspired to [CSS Modules] and [Tailwind] CSS framework.
 * Reduce the css size nesting the selectors where convenient.
 * Handle CSS modules.
@@ -15,7 +15,7 @@ This plugin try to bring the same idea reducing the CSS footprint using CSS util
 This approach keep the functionalities agnostic in terms of the CSS framework used putting in the center just the CSS standard.
 Also There are great CSS Frameworks out there quite largely used, such as [Bootstrap], [Bulma], [SemanticUI] and so on.
 Use this plugin in addition to those CSS Frameworks will improve the CSS footprint without change your code base.
-With atom-css you are the framework rock star 🤘😎🤘.
+With atomic-css you are the framework rock star 🤘😎🤘.
 
 [bootstrap]: https://getbootstrap.com/docs/3.4/css/
 [bulma]: https://bulma.io/

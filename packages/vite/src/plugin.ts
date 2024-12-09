@@ -1,19 +1,19 @@
 import { resolve, dirname, posix } from 'node:path';
 import postcss from 'postcss';
-import { atomCss as atomCssPostcss, Options } from '@pastweb/atom-css-postcss';
+import { atomicCss as atomicCssPostcss, Options } from '@pastweb/atomic-css-postcss';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
 import { transformWithEsbuild, PluginOption, ResolvedConfig, ViteDevServer } from 'vite';
-import { AtomCssOptions, ModulesMap, ImporterData } from './types';
+import { AtomicCssOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
 async function processCSS (input: string, opts: Options, filePath: string) {
-  const result = await postcss([atomCssPostcss(opts)]).process(input, { from: filePath });
+  const result = await postcss([atomicCssPostcss(opts)]).process(input, { from: filePath });
   return result.css;
 };
 
-export function atomCss(options: AtomCssOptions = {}): PluginOption {
+export function atomicCss(options: AtomicCssOptions = {}): PluginOption {
   const importers: Record<string, ImporterData> = {};
   const modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
@@ -27,11 +27,11 @@ export function atomCss(options: AtomCssOptions = {}): PluginOption {
   let isHMR: boolean;
   const entryModules = new Set<string>();
   const getUtilitiesCssCode = () => Object.values(Object.values(modulesMap).reduce((acc, { utilities }) => ({ ...acc, ...utilities }), {})).join('\n');
-  const updateUtilitiesTag = () => server.ws.send('atom-css:update-utilities-css', getUtilitiesCssCode());
+  const updateUtilitiesTag = () => server.ws.send('atomic-css:update-utilities-css', getUtilitiesCssCode());
 
   const plugins: PluginOption = [
     {
-      name: 'atom-css:pre',
+      name: 'atomic-css:pre',
       enforce: 'pre',
       config(config) {
         if (config.css?.lightningcss) return;
@@ -80,7 +80,7 @@ export function atomCss(options: AtomCssOptions = {}): PluginOption {
 
         if (!opts.utility) return;
 
-        server.ws.on('atom-css:initial-utilities-css', () => updateUtilitiesTag());
+        server.ws.on('atomic-css:initial-utilities-css', () => updateUtilitiesTag());
       },
       async resolveId(id, importer, { isEntry }) {
         if (config.css?.lightningcss) return;
@@ -103,7 +103,7 @@ export function atomCss(options: AtomCssOptions = {}): PluginOption {
       },
     },
     {
-      name: 'atom-css',
+      name: 'atomic-css',
       async transform(code, id) {
         if (config.css?.lightningcss) return;
 
@@ -111,14 +111,14 @@ export function atomCss(options: AtomCssOptions = {}): PluginOption {
           const utilitiesHMR = [
             `if (import.meta.hot) {`,
             `  const style = document.createElement('style');`,
-            `  style.id = 'atom-css-utilities';`,
+            `  style.id = 'atomic-css-utilities';`,
             `  document.head.append(style);`,
             ``,
             `  // Initial CSS injection on server start`,
-            `  import.meta.hot.send('atom-css:initial-utilities-css');`,
+            `  import.meta.hot.send('atomic-css:initial-utilities-css');`,
             ``,
             `  // Dynamic CSS updates on changes`,
-            `  import.meta.hot.on('atom-css:update-utilities-css', css => style.textContent = css);`,
+            `  import.meta.hot.on('atomic-css:update-utilities-css', css => style.textContent = css);`,
             `}`,
           ].join('\n');
 
@@ -175,7 +175,7 @@ export function atomCss(options: AtomCssOptions = {}): PluginOption {
       },
     },
     {
-      name: 'atom-css:post',
+      name: 'atomic-css:post',
       enforce: 'post',
       async transform(_, id, options) {
         if (config.css?.lightningcss) return;

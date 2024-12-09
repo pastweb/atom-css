@@ -1,23 +1,24 @@
 {
-  "name": "@pastweb/atom-css-vite",
-  "version": "1.1.0",
+  "name": "@pastweb/atomic-css-vite",
+  "version": "1.1.1",
   "description": "plugin for Atom Css Utility Modules",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/types/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pastweb/atom-css.git"
+    "url": "git+https://github.com/pastweb/atomic-css.git"
   },
   "bugs": {
-    "url": "https://github.com/pastweb/atom-css/issues"
+    "url": "https://github.com/pastweb/atomic-css/issues"
   },
-  "homepage": "https://github.com/pastweb/atom-css/tree/master/packages/vite#readme",
+  "homepage": "https://github.com/pastweb/atomic-css/tree/master/packages/vite#readme",
   "keywords": [
     "vite",
     "vite-plugin",
     "tailwind",
     "css",
+    "atomic",
     "modules",
     "utility"
   ],
@@ -38,7 +39,7 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@pastweb/atom-css-postcss": "^1.0.5",
+    "@pastweb/atomic-css-postcss": "^1.0.5",
     "@rollup/pluginutils": "^5.1.0",
     "acorn": "^8.12.1",
     "acorn-walk": "^8.3.3"

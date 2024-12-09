@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { atomCss } from '../../src';
+import { atomicCss } from '../../src';
 import { Options } from '../../src/types';
 
 const DEFAULT_OPTIONS = {
@@ -8,11 +8,11 @@ const DEFAULT_OPTIONS = {
 };
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([ atomCss({ ...DEFAULT_OPTIONS, ...opts}) ]).process(input, { from: undefined });
+  const result = await postcss([ atomicCss({ ...DEFAULT_OPTIONS, ...opts}) ]).process(input, { from: undefined });
   return result.css;
 };
 
-describe('atomCss - selectors', () => {
+describe('atomicCss - selectors', () => {
   it('should nest flat selectors correctly', async () => {
     const input = `.class1 { color: red; background-color: white; }.class1 .class2 { color: blue; }`;
     const expectedOutput = `.class1 { color: red; background-color: white;.class2 { color: blue; } }`;

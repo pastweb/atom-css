@@ -1,6 +1,6 @@
 {
-  "name": "@pastweb/atom-css-postcss",
-  "version": "1.0.5",
+  "name": "@pastweb/atomic-css-postcss",
+  "version": "1.0.6",
   "description": "CSS tool set, modules, scoped CSS variables, utilities and nesting selectors",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -12,9 +12,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pastweb/atom-css.git"
+    "url": "git+https://github.com/pastweb/atomic-css.git"
   },
   "keywords": [
+    "atomiccss",
     "cssmodules",
     "modules",
     "postcss",
@@ -24,9 +25,9 @@
   "author": "Domenico Pasto",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pastweb/atom-css/issues"
+    "url": "https://github.com/pastweb/atomic-css/issues"
   },
-  "homepage": "https://github.com/pastweb/atom-css#readme",
+  "homepage": "https://github.com/pastweb/atomic-css#readme",
   "files": [
     "dist",
     "LICENSE",

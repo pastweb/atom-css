@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { atomCss } from '../src';
+import { atomicCss } from '../src';
 import { generateHash } from '../src/utils';
 import { Options } from '../src/types';
 
@@ -7,11 +7,11 @@ const getScope = (...args: string[]) => `_${generateHash(8, ...args)}`;
 
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([ atomCss(opts) ]).process(input, { from: undefined });
+  const result = await postcss([ atomicCss(opts) ]).process(input, { from: undefined });
   return result.css;
 };
 
-describe('atomCss - utility', () => {
+describe('atomicCss - utility', () => {
   it('should generate readable className utilies by default correctly', async () => {
     const input = `.class1 { color: red; background-color: white; }.class1 .class2 { color: blue; }`;
     const ID = getScope(input);
