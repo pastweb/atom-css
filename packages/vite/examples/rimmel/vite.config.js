@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
-import { cssTools } from '../../dist/index.mjs';
+import { atomCss } from '../../dist/index.mjs';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [ cssTools({
+  plugins: [ atomCss({
     astPlugins: [
       {
         name: 'rimmel',

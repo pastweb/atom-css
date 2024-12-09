@@ -1,19 +1,19 @@
 import { resolve, dirname, posix } from 'node:path';
 import postcss from 'postcss';
-import { postCssTools, Options } from '@pastweb/postcss-tools';
+import { atomCss as atomCssPostcss, Options } from '@pastweb/atom-css-postcss';
 import { resolveOptions, getModuleData, appendUtilities, getUsedClasses, AstPlugins, AstPlugin } from './util';
 import { dataToEsm, createFilter } from '@rollup/pluginutils';
 import { CLIENT_PUBLIC_PATH, JS_TYPES_RE, FRAMEWORK_TYPE, MODULE_RE } from './constants';
 import { transformWithEsbuild, PluginOption, ResolvedConfig, ViteDevServer } from 'vite';
-import { CssToolsOptions, ModulesMap, ImporterData } from './types';
+import { AtomCssOptions, ModulesMap, ImporterData } from './types';
 
 // Utility function to process CSS with the plugin
 async function processCSS (input: string, opts: Options, filePath: string) {
-  const result = await postcss([postCssTools(opts)]).process(input, { from: filePath });
+  const result = await postcss([atomCssPostcss(opts)]).process(input, { from: filePath });
   return result.css;
 };
 
-export function cssTools(options: CssToolsOptions = {}): PluginOption {
+export function atomCss(options: AtomCssOptions = {}): PluginOption {
   const importers: Record<string, ImporterData> = {};
   const modulesMap: ModulesMap = {};
   let testFilter: ((id: unknown) => boolean) | '' | null | undefined;
@@ -27,11 +27,11 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
   let isHMR: boolean;
   const entryModules = new Set<string>();
   const getUtilitiesCssCode = () => Object.values(Object.values(modulesMap).reduce((acc, { utilities }) => ({ ...acc, ...utilities }), {})).join('\n');
-  const updateUtilitiesTag = () => server.ws.send('css-tools:update-utilities-css', getUtilitiesCssCode());
+  const updateUtilitiesTag = () => server.ws.send('atom-css:update-utilities-css', getUtilitiesCssCode());
 
   const plugins: PluginOption = [
     {
-      name: 'vite-plugin-css-tools-pre',
+      name: 'atom-css:pre',
       enforce: 'pre',
       config(config) {
         if (config.css?.lightningcss) return;
@@ -80,7 +80,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
 
         if (!opts.utility) return;
 
-        server.ws.on('css-tools:initial-utilities-css', () => updateUtilitiesTag());
+        server.ws.on('atom-css:initial-utilities-css', () => updateUtilitiesTag());
       },
       async resolveId(id, importer, { isEntry }) {
         if (config.css?.lightningcss) return;
@@ -103,7 +103,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
       },
     },
     {
-      name: 'vite-plugin-css-tools',
+      name: 'atom-css',
       async transform(code, id) {
         if (config.css?.lightningcss) return;
 
@@ -111,14 +111,14 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
           const utilitiesHMR = [
             `if (import.meta.hot) {`,
             `  const style = document.createElement('style');`,
-            `  style.id = 'css-tools-utilities';`,
+            `  style.id = 'atom-css-utilities';`,
             `  document.head.append(style);`,
             ``,
             `  // Initial CSS injection on server start`,
-            `  import.meta.hot.send('css-tools:initial-utilities-css');`,
+            `  import.meta.hot.send('atom-css:initial-utilities-css');`,
             ``,
             `  // Dynamic CSS updates on changes`,
-            `  import.meta.hot.on('css-tools:update-utilities-css', css => style.textContent = css);`,
+            `  import.meta.hot.on('atom-css:update-utilities-css', css => style.textContent = css);`,
             `}`,
           ].join('\n');
 
@@ -175,7 +175,7 @@ export function cssTools(options: CssToolsOptions = {}): PluginOption {
       },
     },
     {
-      name: 'vite-plugin-css-tools-post',
+      name: 'atom-css:post',
       enforce: 'post',
       async transform(_, id, options) {
         if (config.css?.lightningcss) return;

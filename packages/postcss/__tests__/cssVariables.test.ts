@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { postCssTools } from '../src';
+import { atomCss } from '../src';
 import { generateHash } from '../src/utils';
 import { Options } from '../src/types';
 
@@ -7,11 +7,11 @@ const getScope = (...args: string[]) => `_${generateHash(8, ...args)}`;
 
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}) => {
-  const result = await postcss([postCssTools(opts)]).process(input, { from: undefined });
+  const result = await postcss([atomCss(opts)]).process(input, { from: undefined });
   return result.css;
 };
 
-describe('css-tools - cssVariables', () => {
+describe('atomCss - cssVariables', () => {
   it('should add suffixes to CSS variables in :root', async () => {
     const input = `
       :root {

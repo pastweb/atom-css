@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { resolve } from 'node:path';
-import { cssTools, CssToolsOptions } from '../src';
+import { atomCss, AtomCssOptions } from '../src';
 import * as vite from 'vite';
 
 const { readFile } = fs.promises;
@@ -10,9 +10,9 @@ const cleanCode = (bufferString: string | Uint8Array): string => {
   return new TextDecoder("utf-8").decode(code);
 };
 
-async function viteBuild(fileName: string, options: CssToolsOptions): Promise<(vite.Rollup.OutputChunk | vite.Rollup.OutputAsset)[]> {
+async function viteBuild(fileName: string, options: AtomCssOptions): Promise<(vite.Rollup.OutputChunk | vite.Rollup.OutputAsset)[]> {
   const { output } = await vite.build({
-    plugins: [ cssTools(options) ],
+    plugins: [ atomCss(options) ],
     build: {
       minify: false,
       outDir: './__tests__/dist',
@@ -25,8 +25,8 @@ async function viteBuild(fileName: string, options: CssToolsOptions): Promise<(v
   return output;
 }
 
-describe('cssTools', () => {
-  it('should not process CSS with cssTools', async () => {
+describe('atomCss', () => {
+  it('should not process CSS with atomCss', async () => {
     const expectedOutput = await readFile(resolve(__dirname, './src/index.css'), 'utf-8');
 
     const files = await viteBuild('index.css', { utility: { mode: 'readable' } });

@@ -1,9 +1,9 @@
-# CSS Tools
+# Atom CSS
 A set of tools inspired to [CSS Modules] and [Tailwind] CSS framework.
 * Reduce the css size nesting the selectors where convenient.
 * Handle CSS modules.
 * Scopes CSS variables.
-* Calculate utilities on the fly and assign them in the CSS module object.
+* Calculate atomic css utilities on the fly and assign them in the CSS module object.
 
 [postcss]: https://github.com/postcss/postcss
 [css modules]: https://github.com/css-modules/css-modules
@@ -15,7 +15,7 @@ This plugin try to bring the same idea reducing the CSS footprint using CSS util
 This approach keep the functionalities agnostic in terms of the CSS framework used putting in the center just the CSS standard.
 Also There are great CSS Frameworks out there quite largely used, such as [Bootstrap], [Bulma], [SemanticUI] and so on.
 Use this plugin in addition to those CSS Frameworks will improve the CSS footprint without change your code base.
-With css-tools you are the framework rock star 🤘😎🤘.
+With atom-css you are the framework rock star 🤘😎🤘.
 
 [bootstrap]: https://getbootstrap.com/docs/3.4/css/
 [bulma]: https://bulma.io/

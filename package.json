@@ -1,5 +1,5 @@
 {
-  "name": "@pastweb/css-tools",
+  "name": "@pastweb/atom-css",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pastweb/postcss-utility-modules.git"
+    "url": "git+https://github.com/pastweb/atom-css.git"
   },
   "license": "MIT"
 }

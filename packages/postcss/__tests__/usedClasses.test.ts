@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import { postCssTools } from '../src';
+import { atomCss } from '../src';
 import { generateHash } from '../src/utils';
 import { Options } from '../src/types';
 
@@ -7,11 +7,11 @@ const getScope = (...args: string[]) => `_${generateHash(8, ...args)}`;
 
 // Utility function to process CSS with the plugin
 const processCSS = async (input: string, opts: Options = {}, filePath?: string) => {
-  const result = await postcss([postCssTools(opts)]).process(input, { from: filePath });
+  const result = await postcss([atomCss(opts)]).process(input, { from: filePath });
   return result.css;
 };
 
-describe('css-tools - usedClassNames', () => {
+describe('atomCss - usedClassNames', () => {
   it('should remove the class names not defined in "usedClasses" option.', async () => {
     const input = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2;\n.class2 { color: red; }\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
     const expectedOutput = '.class1 { animation: 3s linear animation1, 3s ease-out 5s animation2\n}\n@keyframes animation1 { opacity: 1; }\n@keyframes animation2 { opacity: 0; }';
