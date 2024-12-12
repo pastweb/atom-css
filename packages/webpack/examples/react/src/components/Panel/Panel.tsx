@@ -2,8 +2,6 @@ import { useState } from "react";
 import clsx from "clsx";
 import classes from "./Panel.module.css";
 
-console.log(classes);
-
 export default function Panel() {
   const [isOpen, setIsOpen] = useState(false);
 

@@ -1,13 +1,12 @@
-import { Options, UtilityOptions } from '../../postcss';
+import { Options, UtilityOptions } from '@pastweb/atomic-css-postcss';
 import { AstPlugin } from './util';
-
-export type CssToolsOptions = Omit<Options, 'test' | 'getModules' | 'utility' | 'usedClasses'> & {
+export type AtomicCssOptions = Omit<Options, 'test' | 'getModules' | 'utility' | 'usedClasses'> & {
   astPlugins?: AstPlugin[];
   usedClasses?: boolean;
   utility?: Omit<UtilityOptions, 'getUtilityModules' | 'output'>;
 };
 
-export type ResolvedCssUtilityOptions = Omit<CssToolsOptions, 'astPlugins'> & Omit<Options, 'usedClasses'> & {
+export type ResolvedCssUtilityOptions = Omit<AtomicCssOptions, 'astPlugins'> & Omit<Options, 'usedClasses'> & {
   astPlugins: AstPlugin[];
 }
 
@@ -24,10 +23,4 @@ export interface ModuleData {
 
 export type ModulesMap = {
   [ filePath: string ]: ModuleData;
-};
-
-export interface ImporterData {
-  id: string;
-  isEntry?: boolean;
-  importedCss: Set<string>;
 };

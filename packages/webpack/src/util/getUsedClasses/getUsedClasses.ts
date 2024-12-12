@@ -5,7 +5,7 @@ import { getSpecifierNames } from './getSpecifierNames';
 import { getStrClasses } from './getStrClasses';
 import { setClassNames } from './setClasses';
 import { NodeType, ACORN_OPTIONS } from './constants';
-import { CSS_LANGS_RE } from '../../constants';
+import { MODULE_RE } from '../../constants';
 import { UsedClasses, AstPlugin, AstPlugins, Node, AstFunction, UsedClassesResult } from './types';
 
 export async function getUsedClasses(id: string, code: string, plugins: AstPlugin[], astPlugins: AstPlugins): Promise<void | UsedClassesResult> {
@@ -50,7 +50,7 @@ export async function getUsedClasses(id: string, code: string, plugins: AstPlugi
     [NodeType.ImportDeclaration](node: Node) {
       const { value } = node.source;
 
-      if (CSS_LANGS_RE.test(value)) {
+      if (MODULE_RE.test(value)) {
         const dir = dirname(id);
         const fileName = resolve(dir, value);
         classes[fileName] = { identifiers: new Set(), classes: [] };

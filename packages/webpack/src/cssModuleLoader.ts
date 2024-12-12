@@ -1,5 +1,5 @@
 import { basename, extname } from 'node:path';
-import { CssTools } from './CssTools';
+import { AtomicCss } from './AtomicCss';
 import { simple } from 'acorn-walk';
 import { generate } from 'astring';
 import { parseJs, NodeType, processCSS } from './util';
@@ -84,33 +84,24 @@ const START_STR = `// Imports\nimport ___CSS_LOADER`;
 
 export default async function cssModuleLoader(this: any, content: string) {
   const callback = this.async(); // Asynchronous handling
-  const opts = CssTools.opts;
+  const opts = AtomicCss.opts;
   const isCssLoader = content.startsWith(START_STR);
   const code = !isCssLoader ? content : extractCss(content);
 
   try {
     const filename = this.resourcePath;
-    const { usedClasses } = CssTools.modulesMap[filename];
+    console.log('------------------ cssModuleLoader')
+    console.log(filename)
+    console.log(AtomicCss.modulesMap)
+    console.log('----------------------------------')
+    const { usedClasses } = AtomicCss.modulesMap[filename];
     const css = await processCSS(code, { ...opts, usedClasses }, filename);
     // Emit the transformed CSS as a separate file
     const cssOutputPath = basename(filename, extname(filename)) + '.css';
     this.emitFile(cssOutputPath, css);
 
-    // Check if HMR is enabled
-    // console.log('------------------ cssModuleLoader')
-    // console.log(this)
-    // if (this.hot) {
-    //   this.hot.accept(() => {
-    //     // Emit an update to the HMR WebSocket API
-    //     this.hot.apply({
-    //       message: 'update-utility-css',
-    //       css: CssTools.getUtilitiesCssCode(),
-    //     });
-    //   });
-    // }
-
     // Return the class map as a JavaScript module using dataToEsm
-    const { modules = {} } = CssTools.modulesMap[filename];
+    const { modules = {} } = AtomicCss.modulesMap[filename];
     const modulesCode = isCssLoader ? replaceCode(content, css, modules) : getModulesCode(css, modules);
 
     callback(null, modulesCode);

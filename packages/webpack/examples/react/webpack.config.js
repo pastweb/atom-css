@@ -1,15 +1,16 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
-const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+// const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 const path = require('path');
 const Dotenv = require('dotenv-webpack');
-const { CssTools, cssClassLoader, cssModuleLoader } = require('../../dist/index.cjs');
+const { AtomicCss, cssClassLoader, cssModuleLoader } = require('../../dist/index.cjs');
 
-const deps = require("./package.json").dependencies;
+// const deps = require("./package.json").dependencies;
 
-const printCompilationMessage = require('./compilation.config.js');
-const { webpack } = require('webpack');
+// const printCompilationMessage = require('./compilation.config.js');
+// const { webpack } = require('webpack');
 
 module.exports = (_, argv) => ({
+  // entry: "./src/index.ts",
   output: {
     publicPath: "http://localhost:8080/",
   },
@@ -22,30 +23,31 @@ module.exports = (_, argv) => ({
   },
 
   devServer: {
+    hot: true,
     port: 8080,
     historyApiFallback: true,
-    watchFiles: [path.resolve(__dirname, 'src')],
-    onListening: function (devServer) {
-      const port = devServer.server.address().port
+    // watchFiles: [path.resolve(__dirname, 'src')],
+    // onListening: function (devServer) {
+    //   const port = devServer.server.address().port
 
-      printCompilationMessage('compiling', port)
+    //   printCompilationMessage('compiling', port)
 
-      devServer.compiler.hooks.done.tap('OutputMessagePlugin', (stats) => {
-        setImmediate(() => {
-          if (stats.hasErrors()) {
-            printCompilationMessage('failure', port)
-          } else {
-            printCompilationMessage('success', port)
-          }
-        })
-      })
-    }
+    //   devServer.compiler.hooks.done.tap('OutputMessagePlugin', (stats) => {
+    //     setImmediate(() => {
+    //       if (stats.hasErrors()) {
+    //         printCompilationMessage('failure', port)
+    //       } else {
+    //         printCompilationMessage('success', port)
+    //       }
+    //     })
+    //   })
+    // }
   },
 
   resolveLoader: {
     alias: {
-      '@pastweb/atom-css-webpack/css-class-loader': path.resolve(__dirname, '../../dist/cssClassLoader.cjs'),
-      '@pastweb/atom-css-webpack/css-module-loader': path.resolve(__dirname, '../../dist/cssModuleLoader.cjs'),
+      '@pastweb/atomic-css-webpack/css-class-loader': path.resolve(__dirname, '../../dist/cssClassLoader.cjs'),
+      '@pastweb/atomic-css-webpack/css-module-loader': path.resolve(__dirname, '../../dist/cssModuleLoader.cjs'),
     },
   },
 
@@ -54,18 +56,18 @@ module.exports = (_, argv) => ({
       {
         test: /\.(ts|tsx|js|jsx)$/,
         exclude: /node_modules/,
-        use: [ '@pastweb/atom-css-webpack/css-class-loader', "esbuild-loader" ],
+        use: [ '@pastweb/atomic-css-webpack/css-class-loader', "esbuild-loader" ],
       },
       {
-        test: /\.(css|s[ac]ss)$/i,
-        exclude: /\.module\.(css|s[ac]ss)$/i,
+        test: /\.css$/i,
+        exclude: /\.module\.css$/i,
         use: ["style-loader", "css-loader", "postcss-loader"],
       },
       {
-        test: /\.module\.(css|s[ac]ss)$/i,
+        test: /\.module\.css$/i,
         use: [
           "style-loader",
-          '@pastweb/atom-css-webpack/css-module-loader',
+          '@pastweb/atomic-css-webpack/css-module-loader',
           // { loader: 'css-loader', options: { modules: false } },
           "postcss-loader",
         ],
@@ -78,7 +80,7 @@ module.exports = (_, argv) => ({
   },
 
   plugins: [
-    new CssTools(),
+    new AtomicCss(),
     // new ModuleFederationPlugin({
     //   name: "react",
     //   filename: "remoteEntry.js",
@@ -98,6 +100,7 @@ module.exports = (_, argv) => ({
     // }),
     new HtmlWebPackPlugin({
       template: "./src/index.html",
+      // scriptLoading: 'module',
       favicon: "./src/assets/favicon.ico",
     }),
     new Dotenv()

@@ -1,3 +1,2 @@
-export { CssTools } from './CssTools';
-
-export type { CssToolsOptions } from './types';
+export { AtomicCss } from './AtomicCss';
+export type { AtomicCssOptions } from './types';
